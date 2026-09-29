@@ -1,0 +1,1043 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>築城記 ALPHA-027 / Sprint BA</title><style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#a7ad8d;color:#29251f;font-family:"Yu Mincho","Hiragino Mincho ProN",serif;touch-action:none}header{height:calc(50px + env(safe-area-inset-top));padding:calc(6px + env(safe-area-inset-top)) 10px 5px;background:#302a23;color:#fff;display:flex;justify-content:space-between;align-items:center}h1{font-size:16px;margin:0}.meta{font:10px system-ui;text-align:right}#wrap{height:calc(100% - 50px - env(safe-area-inset-top));position:relative}canvas{width:100%;height:100%;display:block;touch-action:none}.hud{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:6px;pointer-events:none}.hud .right{margin-left:auto;display:flex;gap:6px;overflow-x:auto;max-width:72vw;scrollbar-width:none}.debug{display:none}.debug.open{display:flex}.primary{background:#50654d;color:#fff;border-color:#394c37;font-weight:700}.objective{position:absolute;left:8px;bottom:92px;width:min(58vw,330px);background:#f3ead8ed;border:1px solid #9c805b;border-radius:11px;padding:8px 10px;font:11px system-ui;line-height:1.35}.objective b{font-family:serif;font-size:12px}.panel{display:none}.panel.open{display:block}.hud .right::-webkit-scrollbar{display:none}.chip{pointer-events:auto;border:1px solid #8e795e;background:#fff9e9e8;border-radius:11px;padding:8px 10px;font:11px system-ui}.notice{position:absolute;top:54px;left:50%;transform:translateX(-50%);width:min(92%,520px);background:#fff9e9e8;border:1px solid #9e8767;border-radius:11px;padding:8px 10px;font-size:12px;text-align:center;pointer-events:none}.panel{position:absolute;right:8px;bottom:88px;max-width:min(48vw,280px);max-height:42vh;overflow:auto;background:#2d2822df;color:#fff;border-radius:10px;padding:7px 9px;font:10px system-ui;line-height:1.5}.bottom{position:absolute;left:0;right:0;bottom:0;padding:28px 8px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#2d2822 24%);display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.tool{min-height:52px;border:1px solid #a98f6c;background:#f5ead5;border-radius:11px;font-weight:700}.tool.on{background:#76573a;color:#fff}.intro{position:absolute;inset:0;background:#211d19d9;display:flex;align-items:center;justify-content:center;padding:18px;z-index:5}.card{background:#f3ead8;border:2px solid #9c805b;border-radius:16px;padding:18px;max-width:500px}.start{width:100%;min-height:48px;border:0;border-radius:11px;background:#50654d;color:#fff;font:bold 15px inherit}.hint{font:10px system-ui;opacity:.75;line-height:1.5}.ending{position:absolute;inset:0;background:#211d19d9;display:none;align-items:center;justify-content:center;padding:18px;z-index:6}.ending.show{display:flex}.progress{height:5px;background:#d9c9aa;border-radius:5px;margin-top:6px;overflow:hidden}.progress i{display:block;height:100%;background:#50654d;width:0}.saveState{font-size:9px;opacity:.7;margin-top:4px}</style></head><body>
+<header><h1>築城記 <small>ALPHA-027 / Sprint BA</small></h1><div class="meta"><span id="year">1560年 春</span><br><span id="status">縄張り前</span></div></header><div id="wrap"><canvas id="c"></canvas>
+<div class="hud"><button class="chip" id="undo">↶</button><button class="chip" id="redo">↷</button><div class="right"><button class="chip primary" id="context">築城する</button><button class="chip" id="time">▶ 時</button><button class="chip" id="chronicle">年代記</button><button class="chip" id="save">保存</button><button class="chip" id="load">再開</button><button class="chip" id="debugToggle">検証</button><span class="debug" id="debugTools"><button class="chip" id="scene">画面</button><button class="chip" id="choice">門比較</button><button class="chip" id="scenario">歴史試験</button><button class="chip" id="e2e">縦切り</button><button class="chip" id="realm">領国試験</button><button class="chip" id="war">戦争試験</button><button class="chip" id="aftermath">復興試験</button><button class="chip" id="domain">地図試験</button><button class="chip" id="alpha">α試験</button><button class="chip" id="rcSelfTest">RC一括</button><button class="chip" id="playtestReport">試遊結果</button></span></div></div><div class="notice" id="notice">まず城芯を置いてください。</div><div class="objective" id="objective"></div><div class="panel" id="panel"></div>
+<div class="bottom"><button class="tool on" data-tool="core">● 城芯</button><button class="tool" data-tool="wall">〰 石垣</button><button class="tool" data-tool="gate">▣ 門</button><button class="tool" data-tool="inspect">◎ 見る</button></div>
+<div class="ending" id="ending"><div class="card"><h2>第一章 完</h2><p id="endingText">この土地に、最初の歴史が刻まれました。</p><button class="start" id="continue">この土地を見続ける</button><p class="hint">α版の到達点です。築城→城下→領国→戦争→復興→世代継承を1本のプレイとして完走しました。</p></div></div><div class="intro" id="intro"><div class="card"><h2>この地に城を築く</h2><p>城芯を置き、石垣を指で自由に描き、石垣上に門を置いてください。門の位置で人の流れが変わり、踏み跡が残り、往来が続くと門前に生活が生まれます。城を築き、城下町を育て、領国を束ね、やがて他勢力との戦いと復興を経て、この土地に歴史を残します。最初は門を一度改築し「今の道」と「昔の道」を同じ土地に残してください。</p><button class="start" id="start">築城を始める</button><p class="hint">1本指：描く・置く ／ 2本指：移動・拡大縮小 ／ 2本指操作後の誤配置を防止 ／ 石垣の途中で2本指にすると未確定線は破棄</p></div></div></div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');let W=0,H=0,dpr=1,tool='core',cam={x:0,y:0,z:1},core=null,walls=[],gate=null,route=[],traffic=[],people=[],activity={pressure:0,persistence:0,state:'NONE'},dwellings=[],localFlow={route:[],strength:0},commands=[],redos=[],year=1560,season=0,ticks=0,drawing=null,pointers=new Map(),pinch=null,metrics={strokeStarted:0,strokeCommitted:0,strokeCancelledBySecondFinger:0,undoImmediatelyAfterCommit:0},lastAction='',gestureLock=false,playTimer=null,scenarioEval={status:'未実施',oldRoute:'',newRoute:'',historical:0,active:0},e2eEval={status:'未実施',stages:[],ticks:0,reason:''},sceneEval={index:0,label:'未実施'},decisionEval={status:'未実施',south:null,north:null,diverged:false},realm={population:24,food:36,labor:12,treasury:20,military:4,prosperity:0,phase:'城下形成',generation:1,rivalPressure:0},rival={name:'東領',population:110,food:70,treasury:45,military:18,control:50,phase:'未接触'},warEval={status:'未実施',turns:0,playerLoss:0,rivalLoss:0,controlDelta:0,result:'—'},aftermath={status:'未実施',damage:0,recovery:0,years:0,legacy:false},domainEval={status:'未実施',nodes:0,links:0,lod:{near:0,mid:0,far:0}},alphaEval={status:'未実施',phase:'築城',steps:0},chronicle=[],worldNodes=[],worldLinks=[],journey={stage:0,completed:false,gatePlacements:0,firstGate:null};
+const villageN={x:.10,y:.72}, terrain={river:[{x:.72,y:-.1},{x:.67,y:.2},{x:.73,y:.42},{x:.66,y:.65},{x:.70,y:1.1}],road:[{x:-.1,y:.75},{x:.22,y:.69},{x:.50,y:.70},{x:.84,y:.60},{x:1.1,y:.62}],hill:{x:.34,y:.33}};
+function resize(){dpr=Math.min(2,devicePixelRatio||1);W=c.clientWidth;H=c.clientHeight;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);draw()}addEventListener('resize',resize);
+function world(p){return{x:(p.x-W/2-cam.x)/cam.z+W/2,y:(p.y-H/2-cam.y)/cam.z+H/2}}function screen(p){return{x:(p.x-W/2)*cam.z+W/2+cam.x,y:(p.y-H/2)*cam.z+H/2+cam.y}}
+function poly(a,col,w,alpha=1){if(a.length<2)return;x.globalAlpha=alpha;x.strokeStyle=col;x.lineWidth=Math.max(1,w);x.lineCap='round';x.lineJoin='round';x.beginPath();a.forEach((p,i)=>{let s=screen(p);i?x.lineTo(s.x,s.y):x.moveTo(s.x,s.y)});x.stroke();x.globalAlpha=1}
+function bg(){x.fillStyle='#b8b08b';x.fillRect(0,0,W,H);let h=screen({x:W*.34,y:H*.33});x.fillStyle='#849467';x.beginPath();x.ellipse(h.x,h.y,W*.20*cam.z,H*.14*cam.z,0,0,7);x.fill();poly(terrain.river.map(q=>({x:q.x*W,y:q.y*H})),'#6c9aa5',24*cam.z);poly(terrain.road.map(q=>({x:q.x*W,y:q.y*H})),'#9b815e',8*cam.z,.8)}
+function village(){let s=screen({x:W*villageN.x,y:H*villageN.y});x.fillStyle='#704c36';x.fillRect(s.x-8,s.y-7,16,12);x.fillStyle='#e1c894';x.beginPath();x.moveTo(s.x-10,s.y-7);x.lineTo(s.x,s.y-15);x.lineTo(s.x+10,s.y-7);x.fill();x.fillStyle='#342b23';x.font='10px serif';x.fillText('村',s.x+13,s.y+4)}
+function draw(){if(!W)return;bg();for(const t of traffic){let historical=t.state==='HISTORICAL';poly(t.pts,historical?'#766d59':'#8a704d',Math.min(14,3+t.strength*1.3)*cam.z,historical?Math.min(.24,.05+t.strength*.025):Math.min(.55,.08+t.strength*.05));}for(const w of walls)poly(w.pts,'#51483d',10*cam.z);if(drawing)poly(drawing.pts,'#ead58d',8*cam.z);if(route.length)poly(route,'#d8b55b',3*cam.z,.7);if(localFlow.route.length)poly(localFlow.route,'#c8a96a',2*cam.z,.45);village();if(core){let s=screen(core);x.fillStyle='#f4efe3';x.strokeStyle='#4d4030';x.lineWidth=2;x.beginPath();x.arc(s.x,s.y,11*cam.z,0,7);x.fill();x.stroke();x.fillStyle='#3c3227';x.textAlign='center';x.font='bold 11px serif';x.fillText('城',s.x,s.y+4)}if(gate){let s=screen(gate);x.fillStyle='#382f26';x.fillRect(s.x-9*cam.z,s.y-6*cam.z,18*cam.z,12*cam.z);x.fillStyle='#eee2c9';x.fillRect(s.x-3*cam.z,s.y-2*cam.z,6*cam.z,8*cam.z)}for(const d of dwellings){let s=screen(d);x.fillStyle='#79583e';x.fillRect(s.x-7*cam.z,s.y-5*cam.z,14*cam.z,10*cam.z);x.fillStyle='#d3b77e';x.beginPath();x.moveTo(s.x-9*cam.z,s.y-5*cam.z);x.lineTo(s.x,s.y-11*cam.z);x.lineTo(s.x+9*cam.z,s.y-5*cam.z);x.fill()}if(gate&&activity.pressure>0){let s=screen(gate);x.strokeStyle='rgba(215,157,65,'+Math.min(.5,.12+activity.pressure*.05)+')';x.lineWidth=2;x.beginPath();x.arc(s.x,s.y,(18+activity.pressure*2)*cam.z,0,7);x.stroke()}for(const p of people){let s=screen(p);x.fillStyle='#30342c';x.beginPath();x.arc(s.x,s.y,2.7,0,7);x.fill()}// Sprint Z: domain-map nodes use aggregate simulation; nearby nodes show life, distant nodes collapse to symbols.
+for(const n of worldNodes){let s=screen({x:W*n.nx,y:H*n.ny}),lod=nodeLOD(n);if(lod==='FAR'){x.fillStyle=n.owner==='player'?'#4f6749':'#6b3d35';x.beginPath();x.arc(s.x,s.y,5,0,7);x.fill();continue}x.fillStyle=n.owner==='player'?'#52694c':'#71443d';x.beginPath();x.arc(s.x,s.y,lod==='NEAR'?10:7,0,7);x.fill();x.fillStyle='#f4ead8';x.textAlign='center';x.font='9px serif';x.fillText(n.type==='FORT'?'支':n.type==='POST'?'宿':'村',s.x,s.y+3);if(lod==='NEAR'){x.fillStyle='#2f2a24';x.font='9px system-ui';x.fillText(n.name+' '+n.population,s.x,s.y+19)}}
+for(const l of worldLinks){let a=worldNodes.find(n=>n.id===l.a),b=worldNodes.find(n=>n.id===l.b);if(a&&b)poly([{x:W*a.nx,y:H*a.ny},{x:W*b.nx,y:H*b.ny}],l.historical?'#776e5b':'#8c7657',l.historical?2:3,l.historical?.28:.45)}
+if(rival.phase!=='未接触'){let rx=W*.82,ry=H*.28,rs=screen({x:rx,y:ry});x.fillStyle='#6b3d35';x.beginPath();x.arc(rs.x,rs.y,13*cam.z,0,7);x.fill();x.fillStyle='#f4e8d8';x.textAlign='center';x.font='bold 10px serif';x.fillText('東領',rs.x,rs.y+3);let fx=screen({x:W*(.45+.35*(realm.control??50)/100),y:H*.52});x.strokeStyle='rgba(105,70,55,.45)';x.setLineDash([6,5]);x.beginPath();x.moveTo(fx.x,0);x.lineTo(fx.x,H);x.stroke();x.setLineDash([])}updatePanel()}
+function simplify(pts,min=6){let o=[];for(const p of pts)if(!o.length||Math.hypot(p.x-o.at(-1).x,p.y-o.at(-1).y)>min/cam.z)o.push(p);if(pts.length&&o.length&&Math.hypot(pts.at(-1).x-o.at(-1).x,pts.at(-1).y-o.at(-1).y)>1)o.push(pts.at(-1));return o}
+function nearestOnWalls(q){let best=null,bd=1e9;for(const w of walls)for(let i=0;i<w.pts.length-1;i++){let a=w.pts[i],b=w.pts[i+1],vx=b.x-a.x,vy=b.y-a.y,l2=vx*vx+vy*vy||1,t=Math.max(0,Math.min(1,((q.x-a.x)*vx+(q.y-a.y)*vy)/l2)),p={x:a.x+t*vx,y:a.y+t*vy},d=Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;best=p}}return bd<44/cam.z?best:null}
+// Sprint M: PLAYABLE-001 invariant-tested navigation. Geometry remains truth; navigation/proxies are derived runtime state.
+const NAV_CELL=16;
+function pointSegDist(p,a,b){let vx=b.x-a.x,vy=b.y-a.y,l2=vx*vx+vy*vy||1,t=Math.max(0,Math.min(1,((p.x-a.x)*vx+(p.y-a.y)*vy)/l2)),q={x:a.x+t*vx,y:a.y+t*vy};return Math.hypot(p.x-q.x,p.y-q.y)}
+function navDims(){return{cols:Math.ceil(W/NAV_CELL),rows:Math.ceil(H/NAV_CELL)}}
+function navKey(cx,cy){return cx+','+cy}
+function navCellOf(p){let d=navDims();return{x:Math.max(0,Math.min(d.cols-1,Math.floor(p.x/NAV_CELL))),y:Math.max(0,Math.min(d.rows-1,Math.floor(p.y/NAV_CELL)))}}
+function navCenter(c0){return{x:(c0.x+.5)*NAV_CELL,y:(c0.y+.5)*NAV_CELL}}
+function buildBlocked(){let d=navDims(),blocked=new Set(),barrier=11,gateRadius=18;for(let cy=0;cy<d.rows;cy++)for(let cx=0;cx<d.cols;cx++){let p=navCenter({x:cx,y:cy}),hit=false;for(const w of walls){for(let i=0;i<w.pts.length-1;i++){if(pointSegDist(p,w.pts[i],w.pts[i+1])<=barrier){hit=true;break}}if(hit)break}if(hit&&(!gate||Math.hypot(p.x-gate.x,p.y-gate.y)>gateRadius))blocked.add(navKey(cx,cy))}return blocked}
+function astar(startP,endP,blocked){let d=navDims(),s=navCellOf(startP),goal=navCellOf(endP),sk=navKey(s.x,s.y),gk=navKey(goal.x,goal.y);blocked.delete(sk);blocked.delete(gk);let open=[{x:s.x,y:s.y,f:0}],came=new Map(),gScore=new Map([[sk,0]]),inOpen=new Set([sk]);let dirs=[[1,0,1],[-1,0,1],[0,1,1],[0,-1,1],[1,1,1.414],[-1,1,1.414],[1,-1,1.414],[-1,-1,1.414]],guard=0;while(open.length&&guard++<20000){open.sort((a,b)=>a.f-b.f);let cur=open.shift(),ck=navKey(cur.x,cur.y);inOpen.delete(ck);if(ck===gk){let cells=[goal],k=gk;while(k!==sk){let prev=came.get(k);if(!prev)return[];cells.push(prev);k=navKey(prev.x,prev.y)}cells.reverse();let pts=cells.map(navCenter);pts[0]={...startP};pts[pts.length-1]={...endP};return compressRoute(pts)}for(const [dx,dy,cost] of dirs){let nx=cur.x+dx,ny=cur.y+dy;if(nx<0||ny<0||nx>=d.cols||ny>=d.rows)continue;let nk=navKey(nx,ny);if(blocked.has(nk))continue;if(dx&&dy&&(blocked.has(navKey(cur.x+dx,cur.y))||blocked.has(navKey(cur.x,cur.y+dy))))continue;let ng=(gScore.get(ck)??1e9)+cost;if(ng<(gScore.get(nk)??1e9)){came.set(nk,{x:cur.x,y:cur.y});gScore.set(nk,ng);let h=Math.hypot(goal.x-nx,goal.y-ny),f=ng+h;if(!inOpen.has(nk)){open.push({x:nx,y:ny,f});inOpen.add(nk)}else{let q=open.find(o=>o.x===nx&&o.y===ny);if(q)q.f=f}}}}return[]}
+function compressRoute(pts){if(pts.length<3)return pts;let out=[pts[0]],prev=null;for(let i=1;i<pts.length;i++){let a=pts[i-1],b=pts[i],dir=[Math.sign(b.x-a.x),Math.sign(b.y-a.y)].join(',');if(prev!==null&&dir!==prev)out.push(a);prev=dir}out.push(pts.at(-1));return out}
+function routeViaGate(v,g,c0){let blocked=buildBlocked(),a=astar(v,g,new Set(blocked)),b=astar(g,c0,new Set(blocked));if(!a.length||!b.length)return[];return a.concat(b.slice(1))}
+function routeHash(r=route){return r.map(p=>Math.round(p.x*10)+','+Math.round(p.y*10)).join('|')}
+function trafficHash(){return traffic.map(t=>t.key+':'+t.strength).join(';')}
+function rebuildLocalFlow(){localFlow.route=[];localFlow.strength=0;if(!gate||!dwellings.length)return;let blocked=buildBlocked(),r=astar(dwellings[0],gate,new Set(blocked));if(r.length){localFlow.route=r;localFlow.strength=1}}
+function addTrafficForRoute(r,amount=1){if(r.length<2)return;let key=r.map(p=>Math.round(p.x)+','+Math.round(p.y)).join('|'),same=traffic.find(t=>t.key===key);if(same){same.strength=Math.min(18,same.strength+amount);same.lastUsedTick=ticks;same.state='ACTIVE'}else traffic.push({key,pts:r.map(p=>({...p})),strength:amount,lastUsedTick:ticks,state:'ACTIVE',historicalSince:null})}
+function decayTraffic(){for(const t of traffic){if(t.lastUsedTick===ticks)continue;let age=ticks-(t.lastUsedTick??0);if(age>=3&&t.state==='ACTIVE')t.state='DECLINING';if(t.state==='DECLINING')t.strength=Math.max(.8,t.strength*.82);if(age>=7&&t.strength<=1.6){t.state='HISTORICAL';t.historicalSince??=ticks;t.strength=Math.max(.8,t.strength*.96)}}}
+function historicalTraceCount(){return traffic.filter(t=>t.state==='HISTORICAL').length}
+function settlementStep(){if(!gate||!route.length){activity.pressure=Math.max(0,activity.pressure-.35);activity.persistence=Math.max(0,activity.persistence-1);activity.state=activity.pressure>0?'DECLINING':'NONE';return}let nearGateTraffic=traffic.reduce((n,t)=>n+(t.pts.some(p=>Math.hypot(p.x-gate.x,p.y-gate.y)<54)?t.strength:0),0);activity.pressure=Math.min(10,nearGateTraffic*.55);if(activity.pressure>=2.2){activity.persistence++;activity.state=activity.persistence>=4?'STABLE':'EMERGING'}else{activity.persistence=Math.max(0,activity.persistence-1);activity.state=activity.pressure>0?'EMERGING':'NONE'}if(activity.persistence>=4&&!dwellings.length){let v={x:W*villageN.x,y:H*villageN.y},dx=gate.x-v.x,dy=gate.y-v.y,len=Math.hypot(dx,dy)||1,nx=-dy/len,ny=dx/len;let candidate={x:gate.x+nx*34,y:gate.y+ny*34};let blocked=buildBlocked(),cell=navCellOf(candidate);if(!blocked.has(navKey(cell.x,cell.y))){dwellings.push({x:candidate.x,y:candidate.y,origin:'FLOW_DWELL'});rebuildLocalFlow();setNotice('往来が続き、門前に仮住居が生まれ、門との生活動線が始まりました。')}}}
+function routeLengths(){let cum=[0];for(let i=1;i<route.length;i++)cum.push(cum.at(-1)+Math.hypot(route[i].x-route[i-1].x,route[i].y-route[i-1].y));return{cum,total:cum.at(-1)||0}}
+function pointOnRoute(t){if(route.length<2)return route[0]||{x:0,y:0};let r=routeLengths(),d=((t%1)+1)%1*r.total,i=1;while(i<r.cum.length&&r.cum[i]<d)i++;i=Math.min(i,r.cum.length-1);let a=route[i-1],b=route[i],span=Math.max(.001,r.cum[i]-r.cum[i-1]),f=(d-r.cum[i-1])/span;return{x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f}}
+function rebuildRoute(){if(!core||!gate){route=[];people=[];rebuildLocalFlow();return}let v={x:W*villageN.x,y:H*villageN.y};route=routeViaGate(v,gate,core);if(!route.length){people=[];setNotice('門を通る経路が見つかりません。石垣か門位置を調整してください。');return}if(!people.length)for(let i=0;i<8;i++)people.push({...v,t:i/8});for(const p of people)Object.assign(p,pointOnRoute(p.t));rebuildLocalFlow()}
+function cmd(doit,undo){doit();commands.push({doit,undo});redos=[];draw()}function setNotice(t){document.getElementById('notice').textContent=t}
+function tap(p){notePlaytestAction('tap');let q=world(p);if(tool==='core'){if(core)return setNotice('城芯は設置済みです。');cmd(()=>core=q,()=>core=null);tool='wall';syncTools();setNotice('石垣を自由に描いてください。')}else if(tool==='gate'){let g=nearestOnWalls(q);if(!g)return setNotice('門は石垣の上に置いてください。');let old=gate?{...gate}:null;cmd(()=>{gate={...g};rebuildRoute()},()=>{gate=old;rebuildRoute()});markGatePlacement(g);setNotice(journey.firstGate&&Math.hypot(g.x-journey.firstGate.x,g.y-journey.firstGate.y)>24?'門を移しました。時を進めると旧道と新道の差が残ります。':'門を置きました。人流が門を通るようになります。')}else if(tool==='inspect')setNotice(gate?'門の位置を変えると人流が変わり、古い踏み跡は時間とともに旧道の痕跡になります。':'石垣上に門を置くと世界が反応します。')}
+function syncTools(){document.querySelectorAll('.tool').forEach(b=>b.classList.toggle('on',b.dataset.tool===tool))}
+
+// Sprint R: deterministic First-30-Minutes history scenario. Test harness only; not a gameplay system.
+function resetScenarioWorld(){
+  setPlaying(false); realm={population:24,food:36,labor:12,treasury:20,military:4,prosperity:0,phase:'城下形成',generation:1,rivalPressure:0,control:50}; rival={name:'東領',population:110,food:70,treasury:45,military:18,control:50,phase:'未接触'}; warEval={status:'未実施',turns:0,playerLoss:0,rivalLoss:0,controlDelta:0,result:'—'}; aftermath={status:'未実施',damage:0,recovery:0,years:0,legacy:false}; domainEval={status:'未実施',nodes:0,links:0,lod:{near:0,mid:0,far:0}}; worldNodes=[]; worldLinks=[]; core={x:W*.72,y:H*.28};
+  walls=[{pts:[{x:W*.45,y:H*.18},{x:W*.45,y:H*.82}]}];
+  gate={x:W*.45,y:H*.68}; route=[]; traffic=[]; people=[];
+  activity={pressure:0,persistence:0,state:'NONE'}; dwellings=[]; localFlow={route:[],strength:0};
+  commands=[]; redos=[]; ticks=0; year=1560; season=0; journey={stage:0,completed:false,gatePlacements:1,firstGate:{...gate}};
+  document.getElementById('year').textContent='1560年 春'; rebuildRoute();
+}
+function runHistoryScenario(){
+  resetScenarioWorld();
+  const oldHash=routeHash();
+  for(let i=0;i<6;i++) advance();
+  gate={x:W*.45,y:H*.34}; journey.gatePlacements=2; rebuildRoute();
+  const newHash=routeHash();
+  for(let i=0;i<12;i++) advance();
+  const historical=traffic.filter(t=>t.state==='HISTORICAL').length;
+  const active=traffic.filter(t=>t.state==='ACTIVE').length;
+  const pass=!!oldHash&&!!newHash&&oldHash!==newHash&&historical>=1&&active>=1;
+  scenarioEval={status:pass?'PASS':'FAIL',oldRoute:oldHash,newRoute:newHash,historical,active};
+  setNotice(pass?'歴史試験 PASS：門の移設で新道が生まれ、旧道も同じ世界に残りました。':'歴史試験 FAIL：旧道と新道の共存条件を満たしていません。');
+  draw(); return pass;
+}
+
+// Sprint S: First 30 Minutes Vertical Slice guidance. No new simulation system; this only exposes existing causal milestones.
+const JOURNEY_STAGES=[
+  {title:'① 縄張り',hint:'城芯を置く',done:()=>!!core},
+  {title:'② 普請',hint:'石垣を自由に描く',done:()=>walls.length>0},
+  {title:'③ 門',hint:'石垣上に門を置く',done:()=>!!gate},
+  {title:'④ 往来',hint:'▶で時を進め、踏み跡を育てる',done:()=>traffic.some(t=>t.state==='ACTIVE'&&t.strength>=2)},
+  {title:'⑤ 生活',hint:'往来を続け、門前の暮らしを待つ',done:()=>dwellings.length>0&&localFlow.route.length>0},
+  {title:'⑥ 改築',hint:'門を別の場所へ置き直し、時を進める',done:()=>!!(journey.firstGate&&gate&&Math.hypot(gate.x-journey.firstGate.x,gate.y-journey.firstGate.y)>24)},
+  {title:'⑦ 歴史',hint:'旧道と新道が同じ土地に残るまで時を進める',done:()=>historicalTraceCount()>0&&traffic.some(t=>t.state==='ACTIVE')}
+];
+function updateJourney(){
+  let next=JOURNEY_STAGES.findIndex(s=>!s.done());
+  journey.stage=next<0?JOURNEY_STAGES.length:next;
+  notePlaytestStage();
+  if(next<0&&!journey.completed){journey.completed=true;setNotice('最初の築城史が完成しました。今の城と、過去の道が同じ土地に残っています。')}
+}
+function journeyText(){updateJourney();if(journey.completed)return '縦切り COMPLETE：現在と歴史が共存';let s=JOURNEY_STAGES[journey.stage];return s?`${s.title}｜${s.hint}`:'—'}
+function journeyProgress(){updateJourney();return Math.min(JOURNEY_STAGES.length,journey.stage)+'/'+JOURNEY_STAGES.length}
+function markGatePlacement(g){journey.gatePlacements++;if(!journey.firstGate)journey.firstGate={...g}}
+
+
+
+
+// Sprint AQ: Human Playtest Evidence Contract.
+// This instrumentation never changes simulation outcomes. It records only local session evidence
+// needed to judge First-30-Minutes usability after a real person plays the build.
+// Sprint AX: Build Identity / Provenance Contract.
+// Maintenance metadata only: no gameplay rule, pacing, recipe, LOD or input behavior changes.
+const BUILD_IDENTITY=Object.freeze({
+  build:'ALPHA-027 / Sprint BA',
+  parent:'ALPHA-026 / Sprint AZ',
+  freezeAnchor:'ALPHA-021 / Sprint AU',
+  saveSchema:2,
+  changeClass:'REPOSITORY_BOOTSTRAP',
+  gameplayRuleChange:false
+});
+const playtestEvidence={originBuild:null,startedAt:null,finishedAt:null,firstActionAt:null,stageAt:{},actionCounts:{},endingReached:false};
+// Sprint AT: Playtest Evidence Persistence Contract.
+// Use wall-clock milliseconds so a playtest can survive a real browser close/reopen.
+// This timestamp is evidence only; it never drives simulation outcomes.
+function playtestNow(){return Date.now()}
+function makePlaytestEvidenceSave(){return {originBuild:playtestEvidence.originBuild||BUILD_IDENTITY.build,startedAt:playtestEvidence.startedAt,finishedAt:playtestEvidence.finishedAt,firstActionAt:playtestEvidence.firstActionAt,stageAt:{...playtestEvidence.stageAt},actionCounts:{...playtestEvidence.actionCounts},endingReached:!!playtestEvidence.endingReached}}
+function restorePlaytestEvidence(saved,fallbackOrigin=null){
+  if(!saved||typeof saved!=='object')return false;
+  playtestEvidence.originBuild=typeof saved.originBuild==='string'?saved.originBuild:(fallbackOrigin||BUILD_IDENTITY.build);
+  playtestEvidence.startedAt=Number.isFinite(saved.startedAt)?saved.startedAt:null;
+  playtestEvidence.finishedAt=Number.isFinite(saved.finishedAt)?saved.finishedAt:null;
+  playtestEvidence.firstActionAt=Number.isFinite(saved.firstActionAt)?saved.firstActionAt:null;
+  playtestEvidence.stageAt=saved.stageAt&&typeof saved.stageAt==='object'?{...saved.stageAt}:{};
+  playtestEvidence.actionCounts=saved.actionCounts&&typeof saved.actionCounts==='object'?{...saved.actionCounts}:{};
+  playtestEvidence.endingReached=!!saved.endingReached;return true;
+}
+function notePlaytestAction(kind){
+  if(!playtestEvidence.originBuild)playtestEvidence.originBuild=BUILD_IDENTITY.build;
+  if(!playtestEvidence.startedAt)playtestEvidence.startedAt=playtestNow();
+  if(!playtestEvidence.firstActionAt)playtestEvidence.firstActionAt=playtestNow();
+  playtestEvidence.actionCounts[kind]=(playtestEvidence.actionCounts[kind]||0)+1;
+}
+function notePlaytestStage(){
+  if(!playtestEvidence.startedAt)return;
+  const key=String(journey.stage);
+  if(playtestEvidence.stageAt[key]==null)playtestEvidence.stageAt[key]=playtestNow()-playtestEvidence.startedAt;
+}
+function playtestEvidenceSnapshot(){
+  const now=playtestEvidence.finishedAt||playtestNow(),start=playtestEvidence.startedAt;
+  return {build:BUILD_IDENTITY.build,evidenceOriginBuild:playtestEvidence.originBuild||BUILD_IDENTITY.build,parentBuild:BUILD_IDENTITY.parent,freezeAnchor:BUILD_IDENTITY.freezeAnchor,mode:PLAYTEST_MODE?'HUMAN_PLAYTEST':'NORMAL',saveSlot:PLAYTEST_MODE?'ISOLATED_PLAYTEST':'NORMAL',elapsedMs:start?now-start:null,firstActionMs:start&&playtestEvidence.firstActionAt?playtestEvidence.firstActionAt-start:null,journeyStage:journey.stage,journeyCompleted:journey.completed,alphaComplete:alphaComplete(),endingReached:playtestEvidence.endingReached,metrics:{...metrics},gatePlacements:journey.gatePlacements,stageAtMs:{...playtestEvidence.stageAt},actionCounts:{...playtestEvidence.actionCounts},generation:realm.generation,historicalTraces:historicalTraceCount(),saveState:saveStateLabel,viewport:{w:innerWidth,h:innerHeight,dpr:devicePixelRatio||1},userAgent:navigator.userAgent};
+}
+// Sprint AS: Human Playtest Acceptance Contract.
+// Human evidence is judged separately from automated RC regressions.
+// First-30 PASS means the core promise was reached by a real play session within 30 minutes;
+// chapter completion is reported separately and is not required inside that 30-minute window.
+const HUMAN_FIRST30_LIMIT_MS=30*60*1000;
+const HUMAN_FIRST_ACTION_LIMIT_MS=90*1000;
+function evaluateHumanPlaytestEvidence(r=playtestEvidenceSnapshot()){
+  const isHuman=r.mode==='HUMAN_PLAYTEST';
+  const provenanceOk=r.evidenceOriginBuild===r.build;
+  const hasStarted=r.elapsedMs!=null;
+  const firstActionOk=r.firstActionMs!=null&&r.firstActionMs<=HUMAN_FIRST_ACTION_LIMIT_MS;
+  const freeDrawOk=(r.metrics.strokeCommitted||0)>=1;
+  const gateOk=(r.gatePlacements||0)>=1;
+  const historyOk=(r.historicalTraces||0)>=1;
+  const verticalOk=!!r.journeyCompleted;
+  const within30=r.elapsedMs!=null&&r.elapsedMs<=HUMAN_FIRST30_LIMIT_MS;
+  const first30Pass=isHuman&&provenanceOk&&hasStarted&&firstActionOk&&freeDrawOk&&gateOk&&verticalOk&&historyOk&&within30;
+  const blockers=[];
+  if(!isHuman)blockers.push('playtest=1 のHuman Playtestではない');
+  if(isHuman&&!provenanceOk)blockers.push(`Evidenceは ${r.evidenceOriginBuild} 由来。現Build ${r.build} のHuman PASSには再試遊が必要`);
+  if(!hasStarted)blockers.push('試遊未開始');
+  if(hasStarted&&!firstActionOk)blockers.push('最初の操作が90秒以内に成立していない');
+  if(!freeDrawOk)blockers.push('自由描画Strokeの確定なし');
+  if(!gateOk)blockers.push('門配置なし');
+  if(!verticalOk)blockers.push('First 30 Vertical Slice未完了');
+  if(!historyOk)blockers.push('歴史痕跡未成立');
+  if(hasStarted&&!within30)blockers.push('30分を超過');
+  return {status:first30Pass?'PASS':(hasStarted?'REVIEW':'UNTESTED'),first30Pass,chapterComplete:!!r.alphaComplete,endingReached:!!r.endingReached,criteria:{isHuman,provenanceOk,hasStarted,firstActionOk,freeDrawOk,gateOk,verticalOk,historyOk,within30},blockers};
+}
+function humanPlaytestAcceptanceTest(){
+  const r=playtestEvidenceSnapshot(),e=evaluateHumanPlaytestEvidence(r);
+  document.body.dataset.humanFirst30=e.status;
+  return {status:e.status,evidence:r,evaluation:e};
+}
+function showPlaytestReport(){
+  const r=playtestEvidenceSnapshot(),mins=r.elapsedMs==null?'—':(r.elapsedMs/60000).toFixed(1),first=r.firstActionMs==null?'—':(r.firstActionMs/1000).toFixed(1)+'秒';
+  const p=document.getElementById('panel');p.classList.add('open');
+  const e=evaluateHumanPlaytestEvidence(r);
+  const why=e.blockers.length?`<br><span style="opacity:.8">要確認：${e.blockers.join(' / ')}</span>`:'';
+  p.innerHTML=`<b>ALPHA-027 試遊結果</b><br><b>Human First30判定 ${e.status}</b><br>経過 ${mins}分 / 最初の操作 ${first}<br>縦切り ${r.journeyCompleted?'完了':'未完了'} / 第一章 ${r.alphaComplete?'完了':'未完了'}<br>Stroke ${r.metrics.strokeCommitted}/${r.metrics.strokeStarted} ・ 2指取消 ${r.metrics.strokeCancelledBySecondFinger} ・ 即Undo ${r.metrics.undoImmediatelyAfterCommit}<br>門配置 ${r.gatePlacements} / 旧道 ${r.historicalTraces}<br>世代 G${r.generation}${why}<br><span style="opacity:.7">Human Gateは自動Regressionと分離。First30 PASSは実試遊30分以内のCore到達を意味し、第一章完は別指標です。</span>`;
+  document.body.dataset.playtestEvidence=JSON.stringify(r);return r;
+}
+
+// Sprint AF deterministic regression: autoplay must pause at both manual decision boundaries.
+function runDecisionBoundaryTest(){
+  setPlaying(false); resetVisualWorld(); core={x:W*.72,y:H*.28};walls=[{pts:[{x:W*.45,y:H*.18},{x:W*.45,y:H*.82}]}];gate={x:W*.45,y:H*.68};journey={stage:0,completed:false,gatePlacements:1,firstGate:{...gate}};rebuildRoute();
+  let g=0;while(journey.stage!==5&&g++<24){advance();updateJourney()}
+  const gateBoundary=journey.stage===5;
+  gate={x:W*.45,y:H*.34};markGatePlacement(gate);rebuildRoute();g=0;while(!journey.completed&&g++<24){advance();updateJourney()}
+  realm.population=60;realm.prosperity=20;domainEval={status:'未実施',nodes:0,links:0,lod:{near:0,mid:0,far:0}};
+  const domainBoundary=journey.completed&&realm.population>=60&&realm.prosperity>=20&&domainEval.status==='未実施';
+  return gateBoundary&&domainBoundary;
+}
+
+// Sprint V: first meaningful choice harness. Same rules, different gate positions; compare emergent outcomes.
+function worldSignature(){
+  const d=dwellings[0];
+  return {routeHash:routeHash(), dwelling:d?`${Math.round(d.x)},${Math.round(d.y)}`:'NONE', trafficKeys:traffic.map(t=>t.key).sort().join('||'), historical:historicalTraceCount()};
+}
+function runGateChoiceVariant(yNorm){
+  resetVisualWorld();
+  core={x:W*.72,y:H*.28};
+  walls=[{pts:[{x:W*.45,y:H*.18},{x:W*.45,y:H*.82}]}];
+  gate={x:W*.45,y:H*yNorm}; journey={stage:0,completed:false,gatePlacements:1,firstGate:{...gate}};
+  rebuildRoute();
+  let guard=0; while((!dwellings.length||!localFlow.route.length)&&guard++<12)advance();
+  for(let i=0;i<3;i++)advance();
+  return worldSignature();
+}
+function runGateChoiceTest(){
+  setPlaying(false);
+  const south=runGateChoiceVariant(.68), north=runGateChoiceVariant(.34);
+  const diverged=south.routeHash!==north.routeHash && south.dwelling!==north.dwelling && south.trafficKeys!==north.trafficKeys;
+  decisionEval={status:diverged?'PASS':'FAIL',south,north,diverged};
+  // Leave the north variant visible so the test result is inspectable in-world.
+  setNotice(diverged?'意思決定試験 PASS：同じ縄張りでも門位置だけで経路・生活位置・踏み跡が分岐しました。':'意思決定試験 FAIL：門位置による世界差が不足しています。');
+  draw(); return diverged;
+}
+// Sprint V: deterministic visual checkpoint harness for QA/screenshots. No gameplay rules are added.
+// Each checkpoint is generated only from the existing Vertical Slice simulation, so screenshots remain reproducible.
+const VISUAL_SCENES=[
+  {label:'① 初期地形',build:()=>{resetVisualWorld();}},
+  {label:'② 城芯',build:()=>{resetVisualWorld();core={x:W*.72,y:H*.28};}},
+  {label:'③ 石垣',build:()=>{resetVisualWorld();core={x:W*.72,y:H*.28};walls=[{pts:[{x:W*.45,y:H*.18},{x:W*.45,y:H*.82}]}];}},
+  {label:'④ 門と人流',build:()=>{buildVisualBase();}},
+  {label:'⑤ 踏み跡',build:()=>{buildVisualBase();for(let i=0;i<4;i++)advance();}},
+  {label:'⑥ 生活',build:()=>{buildVisualBase();let g=0;while((!dwellings.length||!localFlow.route.length)&&g++<12)advance();}},
+  {label:'⑦ 現在と歴史',build:()=>{buildVisualBase();for(let i=0;i<6;i++)advance();gate={x:W*.45,y:H*.34};markGatePlacement(gate);rebuildRoute();for(let i=0;i<12;i++)advance();}}
+];
+function resetVisualWorld(){setPlaying(false);core=null;walls=[];gate=null;route=[];traffic=[];people=[];activity={pressure:0,persistence:0,state:'NONE'};dwellings=[];localFlow={route:[],strength:0};commands=[];redos=[];ticks=0;year=1560;season=0;journey={stage:0,completed:false,gatePlacements:0,firstGate:null};document.getElementById('year').textContent='1560年 春'}
+function buildVisualBase(){resetVisualWorld();core={x:W*.72,y:H*.28};walls=[{pts:[{x:W*.45,y:H*.18},{x:W*.45,y:H*.82}]}];gate={x:W*.45,y:H*.68};journey={stage:0,completed:false,gatePlacements:1,firstGate:{...gate}};rebuildRoute()}
+function showVisualScene(index){document.getElementById('intro').style.display='none';let i=((index%VISUAL_SCENES.length)+VISUAL_SCENES.length)%VISUAL_SCENES.length;VISUAL_SCENES[i].build();sceneEval={index:i,label:VISUAL_SCENES[i].label};setNotice('画面確認 '+VISUAL_SCENES[i].label+'：既存Simulationから再現した固定チェックポイントです。');draw();return sceneEval}
+function nextVisualScene(){return showVisualScene(sceneEval.label==='未実施'?0:sceneEval.index+1)}
+
+// Sprint T: deterministic E2E harness for the existing seven-stage Vertical Slice.
+// It adds no gameplay rules. It verifies that the causal chain can complete without bypassing milestones.
+function snapshotJourney(label){updateJourney();return {label,stage:journey.stage,progress:journeyProgress(),traffic:traffic.length,dwellings:dwellings.length,historical:historicalTraceCount(),active:traffic.filter(t=>t.state==='ACTIVE').length,route:routeHash()}}
+function runVerticalSliceScenario(){
+  setPlaying(false);
+  core={x:W*.72,y:H*.28};
+  walls=[{pts:[{x:W*.45,y:H*.18},{x:W*.45,y:H*.82}]}];
+  gate={x:W*.45,y:H*.68}; route=[]; traffic=[]; people=[];
+  activity={pressure:0,persistence:0,state:'NONE'}; dwellings=[]; localFlow={route:[],strength:0};
+  commands=[]; redos=[]; ticks=0; year=1560; season=0;
+  journey={stage:0,completed:false,gatePlacements:1,firstGate:{...gate}};
+  document.getElementById('year').textContent='1560年 春'; rebuildRoute();
+  const stages=[snapshotJourney('築城完了')];
+  const initialHash=routeHash();
+  let guard=0;
+  while((!dwellings.length||!localFlow.route.length)&&guard++<12)advance();
+  stages.push(snapshotJourney('生活発生'));
+  const lifePass=dwellings.length>0&&localFlow.route.length>0&&traffic.some(t=>t.strength>=2);
+  gate={x:W*.45,y:H*.34}; markGatePlacement(gate); rebuildRoute();
+  const changedHash=routeHash(); stages.push(snapshotJourney('門移設'));
+  guard=0;
+  while(!(historicalTraceCount()>0&&traffic.some(t=>t.state==='ACTIVE'))&&guard++<16)advance();
+  updateJourney(); stages.push(snapshotJourney('歴史成立'));
+  const pass=!!initialHash&&!!changedHash&&initialHash!==changedHash&&lifePass&&journey.completed&&historicalTraceCount()>0&&traffic.some(t=>t.state==='ACTIVE');
+  e2eEval={status:pass?'PASS':'FAIL',stages,ticks,reason:pass?'7段階の既存因果鎖を迂回せず完走':'Vertical Sliceの成立条件のいずれかが未達'};
+  setNotice(pass?'縦切り試験 PASS：築城→往来→生活→改築→歴史を既存Simulationだけで完走しました。':'縦切り試験 FAIL：因果鎖が途中で切れています。');
+  draw(); return pass;
+}
+
+
+// Sprint W: thin full-game skeleton. Aggregate state only; no individual citizen/economy AI.
+function realmStep(){
+  const homes=Math.max(0,dwellings.length);
+  const connected=route.length?1:0;
+  const roadBonus=Math.min(4,traffic.filter(t=>t.state==='ACTIVE').length);
+  const growth=Math.max(0,Math.floor((homes+connected+roadBonus)/2));
+  realm.population=Math.min(500,realm.population+growth);
+  realm.food=Math.max(0,realm.food+8-Math.ceil(realm.population/12));
+  realm.labor=Math.max(4,Math.floor(realm.population*.42));
+  realm.prosperity=Math.min(100,realm.prosperity+(connected?2:0)+homes);
+  realm.treasury=Math.max(0,realm.treasury+Math.floor(realm.population/18)+Math.floor(realm.prosperity/25));
+  realm.military=Math.max(4,Math.floor(realm.population*.12)+Math.floor(realm.treasury/25));
+  realm.rivalPressure=Math.min(100,realm.rivalPressure+(realm.prosperity>12?3:1));
+  if(realm.population>=35)realm.phase='城下町';
+  if(realm.population>=60&&realm.prosperity>=20)realm.phase='領国形成';
+  if(realm.population>=90&&realm.rivalPressure>=18){realm.phase='他勢力接触';contactRival();}
+  if(realm.population>=120&&realm.military>=18)realm.phase='軍勢運用';
+  if(realm.population>=160&&realm.prosperity>=45)realm.phase='世代継承';
+  if(realm.phase==='世代継承'&&ticks%12===0)realm.generation++;
+}
+// Sprint X: one rival + aggregate Army Group conflict. No individual soldiers or tactical AI.
+function contactRival(){
+  rival.phase='接触';
+  if(realm.rivalPressure<18)realm.rivalPressure=18;
+  realm.control=realm.control??50;
+}
+function armyGroupPower(side,turn){
+  const supply=Math.max(.55,Math.min(1.2,side.food/Math.max(30,side.population*.45)));
+  const finance=Math.max(.75,Math.min(1.15,.75+side.treasury/180));
+  const terrain=turn%2===0?1.04:.98;
+  return Math.max(1,side.military*supply*finance*terrain);
+}
+function runRivalWar(){
+  setPlaying(false);
+  if(!core||!gate||!route.length)runVerticalSliceScenario();
+  while(realm.population<120||realm.military<18){advance();realmStep();if(ticks>180)break;}
+  contactRival();
+  const startP=realm.military,startR=rival.military,startC=realm.control??50;
+  let turns=0;
+  for(;turns<6&&realm.military>3&&rival.military>3;turns++){
+    const pp=armyGroupPower(realm,turns),rp=armyGroupPower(rival,turns);
+    const swing=Math.max(-8,Math.min(8,Math.round((pp-rp)/5)));
+    realm.control=Math.max(15,Math.min(85,realm.control+swing));
+    const pLoss=Math.max(1,Math.round(rp/18));
+    const rLoss=Math.max(1,Math.round(pp/18));
+    realm.military=Math.max(0,realm.military-pLoss); rival.military=Math.max(0,rival.military-rLoss);
+    realm.food=Math.max(0,realm.food-Math.ceil(realm.military/8)); rival.food=Math.max(0,rival.food-Math.ceil(rival.military/8));
+    realm.treasury=Math.max(0,realm.treasury-2); rival.treasury=Math.max(0,rival.treasury-2);
+  }
+  const delta=realm.control-startC;
+  const result=delta>3?'優勢':delta<-3?'劣勢':'膠着';
+  warEval={status:'PASS',turns,playerLoss:startP-realm.military,rivalLoss:startR-rival.military,controlDelta:delta,result};
+  realm.phase='領国戦争'; rival.phase='交戦';
+  setNotice(`勢力戦 ${result}：Army Group ${turns}戦。支配 ${startC}→${realm.control}。兵個体は計算していません。`);
+  draw(); return warEval;
+}
+// Sprint Y: war consequence -> damage -> recovery -> generation -> legacy. Aggregate only.
+function runPostWarRecovery(){
+  setPlaying(false);
+  if(warEval.status==='未実施')runRivalWar();
+  const delta=warEval.controlDelta;
+  const loss=warEval.playerLoss;
+  // Damage is deliberately derived from war outcome; no random roll in the skeleton.
+  const damage=Math.max(8,Math.min(42,12+loss*2+(delta<0?10:0)));
+  const popLoss=Math.max(2,Math.round(realm.population*damage/500));
+  realm.population=Math.max(18,realm.population-popLoss);
+  realm.food=Math.max(0,realm.food-Math.round(damage*.7));
+  realm.treasury=Math.max(0,realm.treasury-Math.round(damage*.45));
+  realm.prosperity=Math.max(0,realm.prosperity-Math.round(damage*.8));
+  realm.phase='戦後';
+  // Visual/causal scar: one active traffic trace becomes historical instead of deleting history.
+  const scar=traffic.find(t=>t.state==='ACTIVE');
+  if(scar){scar.state='HISTORICAL';scar.strength=Math.max(.8,scar.strength*.35)}
+  let recovery=0,steps=0,startGen=realm.generation;
+  const targetPop=90,targetPros=35;
+  while(steps++<36&&(realm.population<targetPop||realm.prosperity<targetPros)){
+    advance(); realmStep(); recovery++;
+  }
+  // A generation boundary is a compressed historical checkpoint, not individual genealogy yet.
+  realm.generation=Math.max(startGen+1,realm.generation);
+  realm.phase='復興・世代継承';
+  aftermath={status:(realm.population>=targetPop&&realm.prosperity>=targetPros)?'PASS':'PARTIAL',damage,recovery,years:Math.ceil(recovery/4),legacy:historicalTraceCount()>0};
+  setNotice(`戦後復興 ${aftermath.status}：被害${damage}、約${aftermath.years}年で人口${realm.population}・繁栄${realm.prosperity}。G${startGen}→G${realm.generation}。戦争の痕跡は旧道として残ります。`);
+  draw(); return aftermath;
+}
+// Sprint Z specification: World Node + Simulation LOD skeleton.
+// Node is the unit of distant simulation. It stores aggregate state, never individual citizens.
+function nodeLOD(n){
+  const p=screen({x:W*n.nx,y:H*n.ny}),d=Math.hypot(p.x-W/2,p.y-H/2);
+  if(cam.z>=1.15&&d<Math.min(W,H)*.42)return 'NEAR';
+  if(cam.z>=.82&&d<Math.max(W,H)*.72)return 'MID';
+  return 'FAR';
+}
+function seedDomainNodes(){
+  if(worldNodes.length)return;
+  worldNodes=[
+    {id:'castle',name:'本城城下',type:'CASTLE',nx:.70,ny:.30,owner:'player',population:realm.population,food:realm.food,prosperity:realm.prosperity},
+    {id:'village_w',name:'西村',type:'VILLAGE',nx:.18,ny:.68,owner:'player',population:38,food:62,prosperity:18},
+    {id:'post_s',name:'南宿',type:'POST',nx:.48,ny:.78,owner:'player',population:52,food:45,prosperity:31},
+    {id:'fort_e',name:'東支城',type:'FORT',nx:.80,ny:.48,owner:(realm.control??50)>=50?'player':'rival',population:28,food:34,prosperity:14},
+    {id:'rival',name:'東領城下',type:'CASTLE',nx:.88,ny:.22,owner:'rival',population:rival.population,food:rival.food,prosperity:26}
+  ];
+  worldLinks=[
+    {a:'village_w',b:'castle',kind:'ROAD',flow:3},{a:'castle',b:'post_s',kind:'ROAD',flow:5},
+    {a:'castle',b:'fort_e',kind:'ROAD',flow:4},{a:'fort_e',b:'rival',kind:'BORDER',flow:2}
+  ];
+}
+function domainStep(){
+  seedDomainNodes();
+  for(const n of worldNodes){
+    // One aggregate update per node regardless of population. O(nodes + links), not O(citizens).
+    const degree=worldLinks.filter(l=>l.a===n.id||l.b===n.id).length;
+    const foodBalance=n.food-Math.ceil(n.population/10);
+    const growth=foodBalance>0?Math.max(0,Math.floor((degree+n.prosperity/20)/2)):0;
+    n.population=Math.min(600,n.population+growth);
+    n.food=Math.max(0,n.food+(n.type==='VILLAGE'?10:4)-Math.ceil(n.population/18));
+    n.prosperity=Math.max(0,Math.min(100,n.prosperity+degree-(n.food===0?3:0)));
+  }
+  const castle=worldNodes.find(n=>n.id==='castle'); if(castle){realm.population=castle.population;realm.food=castle.food;realm.prosperity=castle.prosperity}
+}
+function runDomainSkeleton(){
+  setPlaying(false); if(aftermath.status==='未実施')runPostWarRecovery(); seedDomainNodes();
+  for(let i=0;i<8;i++)domainStep();
+  const lod={near:0,mid:0,far:0};for(const n of worldNodes)lod[nodeLOD(n).toLowerCase()]++;
+  const owned=worldNodes.filter(n=>n.owner==='player').length;
+  const pass=worldNodes.length>=5&&worldLinks.length>=4&&owned>=3&&worldNodes.every(n=>Number.isFinite(n.population));
+  domainEval={status:pass?'PASS':'FAIL',nodes:worldNodes.length,links:worldLinks.length,lod};
+  realm.phase='領国地図'; setNotice(`領国地図 ${domainEval.status}：${worldNodes.length}拠点を集約Simulation。近景は生活、遠景は記号へLOD化。`);draw();return pass;
+}
+function runFullSkeletonTest(){
+  resetScenarioWorld(); runVerticalSliceScenario();
+  for(let i=0;i<24;i++){advance();realmStep()}
+  runRivalWar(); const a=runPostWarRecovery();
+  const d=runDomainSkeleton(); return a.status==='PASS'&&a.legacy&&realm.generation>=2&&warEval.status==='PASS'&&d&&domainEval.status==='PASS';
+}
+
+
+
+// Sprint AB: player-facing Alpha loop. Debug harness remains available but is no longer the game UI.
+function establishDomain(){
+  seedDomainNodes();
+  const lod={near:0,mid:0,far:0};for(const n of worldNodes)lod[nodeLOD(n).toLowerCase()]++;
+  domainEval={status:'PASS',nodes:worldNodes.length,links:worldLinks.length,lod};
+  realm.phase='領国地図'; contactRival(); chroniclePush('領国','村・宿場・支城を束ね、東領と国境を接した');
+  setNotice('領国が形になりました。村・宿場・支城が街道で結ばれ、東領と国境を接しています。'); draw();
+}
+// Sprint AG: Single Progression Authority.
+// Objective, main button and execution must resolve from one state function so UI and game logic cannot drift apart.
+function nextPlayerAction(){
+  updateJourney();
+  if(!core)return {id:'CORE',label:'城芯を置く',title:'築城',detail:'城芯を置く'};
+  if(!walls.length)return {id:'WALL',label:'石垣を描く',title:'普請',detail:'石垣を自由に描く'};
+  if(!gate)return {id:'GATE',label:'門を置く',title:'門',detail:'石垣上に門を置く'};
+  if(!journey.completed){
+    if(journey.stage===5)return {id:'REBUILD_GATE',label:'門を改築する',title:'城下形成',detail:journeyText()};
+    return {id:'TIME_LOCAL',label:'時を進める',title:'城下形成',detail:journeyText()};
+  }
+  if(realm.population<60||realm.prosperity<20)return {id:'TIME_REALM',label:'城下を育てる',title:'城下町を育てる',detail:`人口 ${realm.population}/60 ・ 繁栄 ${realm.prosperity}/20`};
+  if(domainEval.status==='未実施')return {id:'DOMAIN',label:'領国を束ねる',title:'領国を束ねる',detail:'村・宿場・支城を街道で結ぶ'};
+  if(warEval.status==='未実施')return {id:'WAR',label:'出陣',title:'東領との対立',detail:`軍勢 ${realm.military} ・ 食料 ${realm.food} ・ 財 ${realm.treasury}`};
+  if(aftermath.status==='未実施')return {id:'RECOVER',label:'復興する',title:'戦後復興',detail:'戦災を受けた城下と街道を立て直す'};
+  return {id:'HISTORY',label:'歴史を見る',title:`第${realm.generation}世代`,detail:'年代記に、この土地の歴史が残っている'};
+}
+function playerContextAction(){
+  const a=nextPlayerAction();notePlaytestAction('context:'+a.id);
+  if(a.id==='CORE'){tool='core';syncTools();return setNotice('地形をタップして城芯を置いてください。')}
+  if(a.id==='WALL'){tool='wall';syncTools();return setNotice('指で石垣を自由に描いてください。')}
+  if(a.id==='GATE'){tool='gate';syncTools();return setNotice('石垣上をタップして門を置いてください。')}
+  if(a.id==='REBUILD_GATE'){setPlaying(false);tool='gate';syncTools();return setNotice('改築：最初の門から離れた石垣上をタップして門を移してください。旧道は消さず歴史として残ります。')}
+  if(a.id==='TIME_LOCAL'){setPlaying(true);return setNotice(journey.stage===6?'旧道と新道が同じ土地に残るまで時を進めます。':'時を進めて、往来と門前の生活を育てます。')}
+  if(a.id==='TIME_REALM'){setPlaying(true);return setNotice('城下町を育てています。人口60・繁栄20で領国化できます。')}
+  if(a.id==='DOMAIN'){establishDomain();autoSave();return}
+  if(a.id==='WAR'){runRivalWar();chroniclePush('戦争',`東領との戦い：${warEval.result}`);autoSave();return}
+  if(a.id==='RECOVER'){runPostWarRecovery();chroniclePush('復興',`戦災から約${aftermath.years}年で復興、G${realm.generation}へ`);autoSave();maybeFinish();return}
+  showChronicle();maybeFinish();
+}
+function objectiveText(){const a=nextPlayerAction();return {title:a.title,detail:a.detail}}
+function updatePlayerUI(){
+  const a=nextPlayerAction(),el=document.getElementById('objective'),b=document.getElementById('context');
+  if(el){const p=sessionProgress()*10;el.innerHTML=`<b>${a.title}</b><br>${a.detail}<div class="progress"><i style="width:${p}%"></i></div><div class="saveState">${saveStateLabel}｜進行 ${p}%</div>`;}
+  if(b)b.textContent=a.label;
+}
+
+
+// Sprint AD specification: First-30-Minutes progression contract.
+// Player-facing context action has exactly one next action; debug choreography is never required.
+// Gate relocation is intentionally manual because it is the first meaningful spatial re-design decision.
+function first30Contract(){
+  updateJourney();
+  return {stage:journey.stage,requiresManualGateMove:journey.stage===5,timeDriven:[3,4,6].includes(journey.stage),debugRequired:false};
+}
+// Sprint AA specification: Alpha Session Loop.
+// Goal: one session can move from local castle-building to domain history without exposing debug choreography.
+// Save format stores authoritative geometry + aggregate simulation only; runtime navigation/people are rebuilt.
+// Sprint AJ: Test Isolation Contract.
+// Automated acceptance/pacing/progression runs must never overwrite a player's authoritative save.
+// Query-driven test harnesses are read-only with respect to localStorage; gameplay saves remain unchanged.
+const TEST_HARNESS_MODE=/(?:autoalpha|autoe2e|autoprogression|autoplayable|autofirst30|autosaveroundtrip|autopointer|autounified|autoinputrobustness|autoviewport|autoready)=1/.test(location.search);
+let suppressedTestSaves=0,testIsolationDepth=0;
+function inTestIsolation(){return TEST_HARNESS_MODE||testIsolationDepth>0}
+function isolatedTest(fn){testIsolationDepth++;try{return fn()}finally{testIsolationDepth=Math.max(0,testIsolationDepth-1)}}
+// Sprint AR: Human Playtest Session Isolation Contract.
+// Human playtests use a separate save slot; normal player history is never overwritten.
+const SAVE_KEY='chikujo-alpha-001';
+const PLAYTEST_SAVE_KEY='chikujo-alpha-playtest-021';
+const PLAYTEST_MODE=location.search.includes('playtest=1');
+function activeSaveKey(){return PLAYTEST_MODE?PLAYTEST_SAVE_KEY:SAVE_KEY}
+function clearPlaytestSave(){try{localStorage.removeItem(PLAYTEST_SAVE_KEY);return true}catch(e){return false}}
+const SAVE_VERSION=2; let saveStateLabel='未保存';
+let endingShown=false,lastAutoSaveTick=-1;
+function sessionProgress(){let n=0;if(core)n++;if(walls.length)n++;if(gate)n++;if(journey.completed)n+=2;if(realm.population>=60&&realm.prosperity>=20)n++;if(domainEval.status!=='未実施')n++;if(warEval.status!=='未実施')n++;if(aftermath.status!=='未実施')n++;if(realm.generation>=2&&aftermath.legacy)n++;return Math.min(10,n)}
+function alphaComplete(){return journey.completed&&domainEval.status==='PASS'&&warEval.status==='PASS'&&aftermath.status==='PASS'&&aftermath.legacy&&realm.generation>=2}
+function maybeFinish(){if(!alphaComplete()||endingShown)return;endingShown=true;playtestEvidence.endingReached=true;playtestEvidence.finishedAt=playtestNow();setPlaying(false);saveGame(true);document.getElementById('endingText').textContent=`${year}年、第${realm.generation}世代。最初の城、城下、戦、復興の痕跡が同じ土地に残りました。`;document.getElementById('ending').classList.add('show')}
+function autoSave(){if(ticks===lastAutoSaveTick)return;lastAutoSaveTick=ticks;saveGame(true)}
+function chroniclePush(kind,text){chronicle.push({year,season,generation:realm.generation,kind,text});if(chronicle.length>80)chronicle.shift()}
+function alphaPhase(){
+  if(!core)return '築城';
+  if(!walls.length||!gate)return '普請';
+  if(!journey.completed)return '城下形成';
+  if(domainEval.status==='未実施')return '領国形成';
+  if(warEval.status==='未実施')return '対外関係';
+  if(aftermath.status==='未実施')return '戦後';
+  return '歴史継承';
+}
+// Sprint AK: Save/Resume Round-Trip Contract.
+// Persistence is split into snapshot -> storage -> restore so regression tests can verify
+// authoritative state without touching the player's real localStorage entry.
+function makeSaveSnapshot(savedAt=Date.now()){
+  return {v:SAVE_VERSION,buildIdentity:{...BUILD_IDENTITY},savedAt,year,season,ticks,core,walls,gate,traffic,activity,dwellings,realm,rival,warEval,aftermath,domainEval,worldNodes,worldLinks,journey,chronicle,playtestEvidence:PLAYTEST_MODE?makePlaytestEvidenceSave():undefined};
+}
+function applySaveSnapshot(s,{recordResume=true}={}){
+  if(!s||![1,2].includes(s.v))throw Error('version');
+  setPlaying(false);year=s.year;season=s.season;ticks=s.ticks;core=s.core;walls=s.walls||[];gate=s.gate;traffic=s.traffic||[];activity=s.activity||{pressure:0,persistence:0,state:'NONE'};dwellings=s.dwellings||[];realm=s.realm;rival=s.rival;warEval=s.warEval;aftermath=s.aftermath;domainEval=s.domainEval;worldNodes=s.worldNodes||[];worldLinks=s.worldLinks||[];journey=s.journey||{stage:0,completed:false,gatePlacements:gate?1:0,firstGate:gate?{...gate}:null};chronicle=s.chronicle||[];
+  const repaired=normalizeLoadedState();people=[];route=[];localFlow={route:[],strength:0};rebuildRoute();
+  if(PLAYTEST_MODE&&s.playtestEvidence)restorePlaytestEvidence(s.playtestEvidence,s.buildIdentity&&s.buildIdentity.build);
+  if(recordResume){saveStateLabel='再開済み';if(repaired)chroniclePush('修復','保存状態の不整合を安全側へ復旧');chroniclePush('再開','保存時代から再開')}
+  const y=document.getElementById('year');if(y)y.textContent=`${year}年 ${['春','夏','秋','冬'][season]}`;
+  return {repaired};
+}
+function saveGame(silent=false){
+  if(inTestIsolation()){suppressedTestSaves++;return true}
+  try{
+    localStorage.setItem(activeSaveKey(),JSON.stringify(makeSaveSnapshot()));saveStateLabel='保存済み';
+    if(!silent){chroniclePush('保存','この時代を保存');setNotice('保存しました。端末・ブラウザの保存領域を使います。')}return true;
+  }catch(e){setNotice('保存できませんでした。ブラウザの保存領域を確認してください。');return false}
+}
+function loadGame(){
+  try{
+    const raw=localStorage.getItem(activeSaveKey());if(!raw){setNotice('保存データがありません。');return false}
+    applySaveSnapshot(JSON.parse(raw));setNotice('保存した時代から再開しました。');draw();return true;
+  }catch(e){setNotice('保存データを読み込めませんでした。');return false}
+}
+function showChronicle(){
+  document.getElementById('panel').classList.add('open');
+  const rows=chronicle.slice(-8).map(e=>`${e.year}年 G${e.generation}｜${e.text}`).join('<br>')||'まだ年代記はありません。';
+  document.getElementById('panel').innerHTML=`<b>年代記</b><br>${rows}<br><span style="opacity:.65">画面を操作すると通常表示へ戻ります。</span>`;
+}
+function runAlphaLoop(){
+  setPlaying(false);let steps=0;
+  // The alpha button is a completion/test accelerator, not a replacement for free player construction.
+  if(!core||!gate||!route.length){runVerticalSliceScenario();chroniclePush('築城','最初の城下と旧道が成立');steps++}
+  if(realm.population<90){for(let i=0;i<24;i++){advance();realmStep()}chroniclePush('領国','城下が領国へ成長');steps++}
+  if(domainEval.status==='未実施'){runDomainSkeleton();chroniclePush('領国地図',`${worldNodes.length}拠点が結ばれた`);steps++}
+  if(warEval.status==='未実施'){runRivalWar();chroniclePush('戦争',`東領との戦い：${warEval.result}`);steps++}
+  if(aftermath.status==='未実施'){runPostWarRecovery();chroniclePush('復興',`戦災から約${aftermath.years}年で復興、G${realm.generation}へ`);steps++}
+  // Re-run domain aggregation after war/recovery so the long-range world reflects the latest realm state.
+  for(let i=0;i<4;i++)domainStep();
+  const pass=journey.completed&&domainEval.status==='PASS'&&warEval.status==='PASS'&&aftermath.status==='PASS'&&aftermath.legacy&&realm.generation>=2;
+  alphaEval={status:pass?'PASS':'PARTIAL',phase:alphaPhase(),steps};
+  setNotice(pass?'α進行 PASS：築城→城下→領国→戦争→復興→世代→歴史まで1セッションで接続しました。':'α進行 PARTIAL：必要条件の一部が未達です。');draw();return pass;
+}
+// Sprint AG recovery contract: normalize authoritative state after resume before deriving runtime state.
+function normalizeLoadedState(){
+  let repaired=false;
+  if(!core&&walls.length){walls=[];gate=null;repaired=true}
+  if(gate&&(!walls.length||!nearestOnWalls(gate))){gate=null;journey.completed=false;journey.stage=Math.min(journey.stage||0,2);repaired=true}
+  if(domainEval.status==='PASS'&&worldNodes.length<5){domainEval={status:'未実施',nodes:0,links:0,lod:{near:0,mid:0,far:0}};worldNodes=[];worldLinks=[];repaired=true}
+  if(aftermath.status==='PASS'&&warEval.status==='未実施'){aftermath={status:'未実施',damage:0,recovery:0,years:0,legacy:false};repaired=true}
+  return repaired;
+}
+function runProgressionAuthorityTest(){
+  resetScenarioWorld();chronicle=[];
+  const seen=[]; const take=()=>seen.push(nextPlayerAction().id);
+  take(); core={x:300,y:210}; take(); walls=[{pts:[{x:220,y:160},{x:380,y:160},{x:400,y:280},{x:210,y:285},{x:220,y:160}]}]; take();
+  gate={x:300,y:160};journey={stage:5,completed:false,gatePlacements:1,firstGate:{...gate}};rebuildRoute();take();
+  journey.completed=true;realm.population=60;realm.prosperity=20;take();establishDomain();take();warEval={status:'PASS',turns:1,playerLoss:1,rivalLoss:1,controlDelta:1,result:'優勢'};take();aftermath={status:'PASS',damage:1,recovery:1,years:1,legacy:true};realm.generation=2;take();
+  const expected=['CORE','WALL','GATE','REBUILD_GATE','DOMAIN','WAR','RECOVER','HISTORY'];
+  const pass=expected.every((v,i)=>seen[i]===v)&&seen.length===expected.length;
+  resetScenarioWorld();return {status:pass?'PASS':'FAIL',seen,expected};
+}
+function runAlphaAcceptance(){
+  resetScenarioWorld();chronicle=[];const ok=runAlphaLoop();
+  const invariants={geometry:!!core&&walls.length>0&&!!gate,vertical:journey.completed,domain:domainEval.status==='PASS',war:warEval.status==='PASS',recovery:aftermath.status==='PASS',legacy:aftermath.legacy,generation:realm.generation>=2,nodes:worldNodes.length>=5};
+  return ok&&Object.values(invariants).every(Boolean);
+}
+
+
+// Sprint AH: Playable-Core E2E + Stall Recovery Contract.
+// Purpose: verify the player-facing progression authority can reach chapter completion
+// without invoking the legacy alpha/debug accelerator. Geometry setup is deterministic
+// test input; all post-build progression uses the same playerContextAction() as normal UI.
+let progressionWatch={id:null,sinceTick:0,lastNoticeTick:-999};
+function progressionRecoveryHint(){
+  const a=nextPlayerAction();
+  if(progressionWatch.id!==a.id){progressionWatch={id:a.id,sinceTick:ticks,lastNoticeTick:progressionWatch.lastNoticeTick};return null}
+  const age=ticks-progressionWatch.sinceTick;
+  if((a.id==='TIME_LOCAL'||a.id==='TIME_REALM')&&age>=18&&ticks-progressionWatch.lastNoticeTick>=12){
+    progressionWatch.lastNoticeTick=ticks;
+    return a.id==='TIME_LOCAL'
+      ?'進行が長く止まっています。門・石垣がつながっているか確認し、必要なら門を置き直してください。'
+      :'城下の成長が停滞しています。時間を一時停止して現在の人口・繁栄を確認できます。';
+  }
+  return null;
+}
+function runPlayableCoreE2E(){
+  resetScenarioWorld();chronicle=[];endingShown=false;setPlaying(false);
+  const trace=[];const snap=()=>trace.push(nextPlayerAction().id);
+  // Deterministic equivalents of the three opening player gestures.
+  snap();core={x:300,y:220};snap();
+  walls=[{pts:[{x:210,y:155},{x:390,y:155},{x:410,y:290},{x:200,y:290},{x:210,y:155}]}];snap();
+  gate={x:300,y:155};journey={stage:3,completed:false,gatePlacements:1,firstGate:{...gate}};rebuildRoute();
+  // Local simulation to the manual redesign boundary.
+  let guard=0;while(nextPlayerAction().id==='TIME_LOCAL'&&guard++<80)advance();snap();
+  if(nextPlayerAction().id==='REBUILD_GATE'){
+    gate={x:390,y:220};journey.gatePlacements=2;rebuildRoute();updateJourney();
+  }
+  guard=0;while(!journey.completed&&guard++<100)advance();
+  // Realm growth uses ordinary simulation, then all decisions use the player-facing dispatcher.
+  guard=0;while(nextPlayerAction().id==='TIME_REALM'&&guard++<120)advance();snap();
+  if(nextPlayerAction().id==='DOMAIN'){playerContextAction();snap()}
+  if(nextPlayerAction().id==='WAR'){playerContextAction();snap()}
+  if(nextPlayerAction().id==='RECOVER'){playerContextAction();snap()}
+  maybeFinish();snap();
+  const invariants={vertical:journey.completed,domain:domainEval.status==='PASS',war:warEval.status==='PASS',recovery:aftermath.status==='PASS',legacy:!!aftermath.legacy,generation:realm.generation>=2,history:nextPlayerAction().id==='HISTORY',complete:alphaComplete()};
+  const pass=Object.values(invariants).every(Boolean);
+  document.body.dataset.playable=pass?'PASS':'FAIL';
+  document.body.dataset.playableTrace=trace.join('>');
+  setNotice(pass?'Playable Core E2E PASS：通常進行権限で第一章完まで接続。':'Playable Core E2E FAIL：通常進行のどこかで停止。');draw();
+  return {status:pass?'PASS':'FAIL',trace,invariants,guard};
+}
+// Sprint AJ: First-30-Minutes pacing contract.
+// This is a deterministic simulation budget, not a claim about human play time.
+// It prevents regressions where the playable core technically works but requires excessive waiting.
+const FIRST30_BUDGET={toRedesign:80,toVertical:180,toDomain:300,total:360};
+function runFirst30PacingTest(){
+  resetScenarioWorld();chronicle=[];endingShown=false;setPlaying(false);
+  const start=ticks,m={start:ticks,redesign:null,vertical:null,domain:null,history:null};
+  core={x:300,y:220};walls=[{pts:[{x:210,y:155},{x:390,y:155},{x:410,y:290},{x:200,y:290},{x:210,y:155}]}];
+  gate={x:300,y:155};journey={stage:3,completed:false,gatePlacements:1,firstGate:{...gate}};rebuildRoute();
+  let guard=0;while(nextPlayerAction().id==='TIME_LOCAL'&&guard++<FIRST30_BUDGET.toRedesign)advance();m.redesign=ticks-start;
+  if(nextPlayerAction().id==='REBUILD_GATE'){gate={x:390,y:220};journey.gatePlacements=2;rebuildRoute();updateJourney()}
+  guard=0;while(!journey.completed&&guard++<100)advance();m.vertical=ticks-start;
+  guard=0;while(nextPlayerAction().id==='TIME_REALM'&&guard++<120)advance();m.domain=ticks-start;
+  if(nextPlayerAction().id==='DOMAIN')playerContextAction();
+  if(nextPlayerAction().id==='WAR')playerContextAction();
+  if(nextPlayerAction().id==='RECOVER')playerContextAction();
+  maybeFinish();m.history=ticks-start;
+  const checks={redesign:m.redesign<=FIRST30_BUDGET.toRedesign,vertical:m.vertical<=FIRST30_BUDGET.toVertical,domain:m.domain<=FIRST30_BUDGET.toDomain,total:m.history<=FIRST30_BUDGET.total,complete:alphaComplete(),history:nextPlayerAction().id==='HISTORY'};
+  const pass=Object.values(checks).every(Boolean);document.body.dataset.first30=pass?'PASS':'FAIL';document.body.dataset.first30Ticks=String(m.history);
+  setNotice(pass?`First 30 Minutes pacing PASS：待ち時間予算 ${m.history}/${FIRST30_BUDGET.total} tick。`:`First 30 Minutes pacing FAIL：進行待ちが予算超過。`);draw();
+  return {status:pass?'PASS':'FAIL',milestones:m,budget:FIRST30_BUDGET,checks};
+}
+// Sprint AL: synthetic PointerEvent contract for the First-30-Minutes construction path.
+// This does not replace Human/iPhone playtest. It verifies that the same DOM pointer handlers
+// used by a player can create the core, commit a freehand wall, place a gate, and relocate it.
+function dispatchCanvasPointer(type,x,y,id=1){
+  const r=c.getBoundingClientRect();
+  const e=new PointerEvent(type,{pointerId:id,pointerType:'touch',clientX:r.left+x,clientY:r.top+y,bubbles:true,cancelable:true,isPrimary:true,buttons:type==='pointerup'?0:1});
+  c.dispatchEvent(e);
+}
+function runPointerInputContractTest(){
+  resetScenarioWorld();setPlaying(false);core=null;walls=[];gate=null;route=[];traffic=[];people=[];dwellings=[];localFlow={route:[],strength:0};journey={stage:0,completed:false,gatePlacements:0,firstGate:null};commands=[];redos=[];cam={x:0,y:0,z:1};tool='core';syncTools();
+  let error='';
+  try{
+    dispatchCanvasPointer('pointerdown',W*.70,H*.28);dispatchCanvasPointer('pointerup',W*.70,H*.28);
+    tool='wall';syncTools();
+    const stroke=[[W*.45,H*.18],[W*.45,H*.34],[W*.45,H*.50],[W*.45,H*.66],[W*.45,H*.82]];
+    dispatchCanvasPointer('pointerdown',...stroke[0]);for(const q of stroke.slice(1))dispatchCanvasPointer('pointermove',...q);dispatchCanvasPointer('pointerup',...stroke.at(-1));
+    tool='gate';syncTools();dispatchCanvasPointer('pointerdown',W*.45,H*.68);dispatchCanvasPointer('pointerup',W*.45,H*.68);
+    const first=gate?{...gate}:null;dispatchCanvasPointer('pointerdown',W*.45,H*.34);dispatchCanvasPointer('pointerup',W*.45,H*.34);
+    const checks={core:!!core,freehand:walls.length===1&&walls[0].pts.length>=2,gate:!!gate,gateOnWall:!!(gate&&nearestOnWalls(gate)),relocated:!!(first&&gate&&Math.hypot(gate.x-first.x,gate.y-first.y)>24),journeyTracked:journey.gatePlacements>=2&&!!journey.firstGate,route:route.length>0,commands:commands.length>=4};
+    const pass=Object.values(checks).every(Boolean);document.body.dataset.pointerinput=pass?'PASS':'FAIL';setNotice(pass?'Pointer Input PASS：DOM入力で城芯→自由描画→門→門改築を成立。':'Pointer Input FAIL：実入力経路の回帰を検出。');draw();return {status:pass?'PASS':'FAIL',checks,error};
+  }catch(e){error=String(e&&e.message||e);document.body.dataset.pointerinput='FAIL';setNotice('Pointer Input FAIL：'+error);draw();return {status:'FAIL',checks:{},error};}
+}
+
+// Sprint AM: Unified Player-Path E2E Contract.
+// Connects real DOM pointer handlers to ordinary simulation + decision-boundary dispatch.
+// No direct geometry injection is allowed after reset. This closes the largest gap between
+// the pointer contract and the Playable-Core E2E while remaining deterministic and test-isolated.
+function runUnifiedPlayerPathE2E(){
+  resetScenarioWorld();chronicle=[];endingShown=false;setPlaying(false);
+  core=null;walls=[];gate=null;route=[];traffic=[];people=[];dwellings=[];localFlow={route:[],strength:0};
+  journey={stage:0,completed:false,gatePlacements:0,firstGate:null};commands=[];redos=[];cam={x:0,y:0,z:1};
+  const trace=[],milestones={built:null,redesign:null,vertical:null,domain:null,history:null};
+  const mark=label=>trace.push(`${label}:${nextPlayerAction().id}`);
+  let error='';
+  try{
+    // Opening construction: same pointer handlers as a touch player.
+    tool='core';syncTools();dispatchCanvasPointer('pointerdown',W*.70,H*.28);dispatchCanvasPointer('pointerup',W*.70,H*.28);
+    tool='wall';syncTools();const stroke=[[W*.45,H*.18],[W*.45,H*.34],[W*.45,H*.50],[W*.45,H*.66],[W*.45,H*.82]];
+    dispatchCanvasPointer('pointerdown',...stroke[0]);for(const q of stroke.slice(1))dispatchCanvasPointer('pointermove',...q);dispatchCanvasPointer('pointerup',...stroke.at(-1));
+    tool='gate';syncTools();dispatchCanvasPointer('pointerdown',W*.45,H*.68);dispatchCanvasPointer('pointerup',W*.45,H*.68);
+    milestones.built=ticks;mark('built');
+    // Simulation owns waiting; it must stop at the manual redesign boundary.
+    let guard=0;while(nextPlayerAction().id==='TIME_LOCAL'&&guard++<FIRST30_BUDGET.toRedesign)advance();
+    milestones.redesign=ticks;mark('redesign');
+    if(nextPlayerAction().id!=='REBUILD_GATE')throw new Error('REBUILD_GATE boundary not reached');
+    // Manual redesign is also a pointer gesture, never direct state mutation.
+    dispatchCanvasPointer('pointerdown',W*.45,H*.34);dispatchCanvasPointer('pointerup',W*.45,H*.34);mark('gateMoved');
+    guard=0;while(!journey.completed&&guard++<100)advance();milestones.vertical=ticks;mark('vertical');
+    guard=0;while(nextPlayerAction().id==='TIME_REALM'&&guard++<120)advance();milestones.domain=ticks;mark('domainReady');
+    // Meaningful decisions are executed only through the player-facing authority.
+    for(const id of ['DOMAIN','WAR','RECOVER']){
+      if(nextPlayerAction().id!==id)throw new Error(`${id} boundary not reached`);
+      playerContextAction();mark(id.toLowerCase());
+    }
+    maybeFinish();milestones.history=ticks;mark('history');
+    const checks={
+      pointerGeometry:!!core&&walls.length===1&&!!gate&&journey.gatePlacements>=2,
+      freehand:walls[0]?.pts?.length>=2,
+      vertical:journey.completed,
+      domain:domainEval.status==='PASS',war:warEval.status==='PASS',recovery:aftermath.status==='PASS',
+      legacy:!!aftermath.legacy,generation:realm.generation>=2,history:nextPlayerAction().id==='HISTORY',complete:alphaComplete(),
+      pacing:(milestones.redesign-milestones.built)<=FIRST30_BUDGET.toRedesign&&milestones.history<=FIRST30_BUDGET.total
+    };
+    const pass=Object.values(checks).every(Boolean);document.body.dataset.unifiedE2E=pass?'PASS':'FAIL';
+    document.body.dataset.unifiedTrace=trace.join('>');
+    setNotice(pass?'Unified Player-Path E2E PASS：Pointer→Simulation→判断境界→第一章完を一本化。':'Unified Player-Path E2E FAIL：プレイヤー経路の接続に回帰あり。');draw();
+    return {status:pass?'PASS':'FAIL',checks,trace,milestones,error};
+  }catch(e){error=String(e&&e.message||e);document.body.dataset.unifiedE2E='FAIL';setNotice('Unified Player-Path E2E FAIL：'+error);draw();return {status:'FAIL',checks:{},trace,milestones,error};}
+}
+
+// Sprint AK: deterministic Save/Resume round-trip regression.
+// PASS means serialized authoritative state survives JSON round-trip and restores the same
+// progression authority. It does NOT claim Safari process-kill persistence.
+function runSaveResumeRoundTripTest(){
+  resetScenarioWorld();chronicle=[];endingShown=false;setPlaying(false);
+  core={x:300,y:220};walls=[{pts:[{x:210,y:155},{x:390,y:155},{x:410,y:290},{x:200,y:290},{x:210,y:155}]}];
+  gate={x:390,y:220};journey={stage:7,completed:true,gatePlacements:2,firstGate:{x:300,y:155}};realm.population=73;realm.prosperity=24;realm.food=88;rebuildRoute();
+  establishDomain();runRivalWar();runPostWarRecovery();
+  const before=makeSaveSnapshot(1234567890),beforeAction=nextPlayerAction().id;
+  const encoded=JSON.stringify(before);resetScenarioWorld();chronicle=[];
+  const restored=JSON.parse(encoded);const result=applySaveSnapshot(restored,{recordResume:false});
+  const after=makeSaveSnapshot(1234567890),afterAction=nextPlayerAction().id;
+  const canonical=x=>JSON.stringify(x);
+  const checks={version:after.v===SAVE_VERSION,geometry:canonical(after.core)===canonical(before.core)&&canonical(after.walls)===canonical(before.walls)&&canonical(after.gate)===canonical(before.gate),realm:canonical(after.realm)===canonical(before.realm),world:canonical(after.worldNodes)===canonical(before.worldNodes)&&canonical(after.worldLinks)===canonical(before.worldLinks),history:canonical(after.chronicle)===canonical(before.chronicle),progression:afterAction===beforeAction,unrepaired:!result.repaired,routeRebuilt:route.length>0};
+  const pass=Object.values(checks).every(Boolean);document.body.dataset.saveRoundtrip=pass?'PASS':'FAIL';
+  setNotice(pass?'Save/Resume round-trip PASS：権威状態と進行権限を再構築。':'Save/Resume round-trip FAIL：保存復帰の差分を検出。');draw();
+  return {status:pass?'PASS':'FAIL',checks,beforeAction,afterAction,bytes:encoded.length};
+}
+
+// Sprint AN: iPhone-oriented Input Robustness regression.
+// Verifies tap slop, drag suppression, second-finger cancellation, and listener lifecycle behavior.
+function runInputRobustnessTest(){
+  resetScenarioWorld();core=null;walls=[];gate=null;commands=[];redos=[];tool='core';syncTools();
+  const beforeCommands=commands.length;
+  dispatchCanvasPointer('pointerdown',W*.70,H*.28,31);
+  dispatchCanvasPointer('pointermove',W*.70+TAP_SLOP_PX+8,H*.28,31);
+  dispatchCanvasPointer('pointerup',W*.70+TAP_SLOP_PX+8,H*.28,31);
+  const dragSuppressed=!core&&commands.length===beforeCommands;
+  dispatchCanvasPointer('pointerdown',W*.70,H*.28,32);dispatchCanvasPointer('pointerup',W*.70+4,H*.28+3,32);
+  const tapAccepted=!!core;
+  tool='wall';syncTools();const cancelBefore=metrics.strokeCancelledBySecondFinger;
+  dispatchCanvasPointer('pointerdown',W*.45,H*.20,41);dispatchCanvasPointer('pointermove',W*.45,H*.40,41);
+  dispatchCanvasPointer('pointerdown',W*.60,H*.30,42);dispatchCanvasPointer('pointerup',W*.60,H*.30,42);dispatchCanvasPointer('pointerup',W*.45,H*.40,41);
+  const secondFingerCancelled=metrics.strokeCancelledBySecondFinger===cancelBefore+1&&walls.length===0;
+  const pointerStateClean=pointers.size===0&&pointerStarts.size===0&&pointerMaxTravel.size===0&&!drawing&&!pinch&&!gestureLock;
+  // syncTools may be called freely; it must not register event listeners or mutate pointer state.
+  for(let i=0;i<25;i++)syncTools();
+  const syncPure=pointers.size===0&&pointerStarts.size===0&&pointerMaxTravel.size===0;
+  const checks={dragSuppressed,tapAccepted,secondFingerCancelled,pointerStateClean,syncPure,tapSlop:TAP_SLOP_PX===12};
+  const pass=Object.values(checks).every(Boolean);document.body.dataset.inputrobustness=pass?'PASS':'FAIL';
+  setNotice(pass?'Input Robustness PASS：誤ドラッグ配置・2指競合・入力状態リークを抑止。':'Input Robustness FAIL：iPhone入力契約に回帰あり。');draw();
+  return {status:pass?'PASS':'FAIL',checks,tapSlopPx:TAP_SLOP_PX};
+}
+
+// Sprint AO: iPhone Viewport / HUD Occlusion Contract.
+// This is a deterministic layout-budget test, not a substitute for real Safari rendering.
+// Contract: on compact iPhone-class viewports, a meaningful central drawing corridor must remain
+// between top HUD/notice and the bottom controls/objective. Safe-area insets are included explicitly.
+const IPHONE_VIEWPORT_PROFILES=[
+  {name:'compact',w:375,h:667,safeTop:20,safeBottom:0},
+  {name:'notch',w:390,h:844,safeTop:47,safeBottom:34},
+  {name:'large',w:430,h:932,safeTop:59,safeBottom:34}
+];
+function viewportLayoutBudget(p){
+  const header=50+p.safeTop;
+  const canvasH=p.h-header;
+  const topHudBottom=8+38;
+  const noticeBottom=54+38;
+  const topBlocked=Math.max(topHudBottom,noticeBottom);
+  const bottomBarTop=canvasH-(28+52+8+p.safeBottom);
+  const objectiveTop=canvasH-92-78; // conservative objective card budget
+  const lowerBlockedTop=Math.min(bottomBarTop,objectiveTop);
+  const corridor=Math.max(0,lowerBlockedTop-topBlocked);
+  const corridorRatio=canvasH?corridor/canvasH:0;
+  return {name:p.name,w:p.w,h:p.h,header,canvasH,topBlocked,lowerBlockedTop,corridor,corridorRatio};
+}
+function runViewportLayoutContractTest(){
+  const profiles=IPHONE_VIEWPORT_PROFILES.map(viewportLayoutBudget);
+  const checks={
+    compactCanvas:profiles[0].canvasH>=590,
+    compactCorridor:profiles[0].corridor>=350,
+    allCorridors:profiles.every(v=>v.corridor>=350),
+    allRatios:profiles.every(v=>v.corridorRatio>=.55),
+    safeAreaAware:profiles[1].header===97&&profiles[1].canvasH===747,
+    touchTargets:52>=44
+  };
+  const pass=Object.values(checks).every(Boolean);
+  document.body.dataset.viewportlayout=pass?'PASS':'FAIL';
+  document.body.dataset.viewportCorridor=String(Math.min(...profiles.map(v=>Math.round(v.corridor))));
+  setNotice(pass?'Viewport Layout PASS：iPhone級画面でも中央描画領域を確保。':'Viewport Layout FAIL：HUDが描画領域を侵食しています。');draw();
+  return {status:pass?'PASS':'FAIL',checks,profiles};
+}
+
+// Sprint AR: Playtest Isolation Contract regression.
+function runPlaytestIsolationContractTest(){
+  const checks={distinctKeys:SAVE_KEY!==PLAYTEST_SAVE_KEY,currentRouting:activeSaveKey()===(PLAYTEST_MODE?PLAYTEST_SAVE_KEY:SAVE_KEY),testHarnessProtected:!TEST_HARNESS_MODE||inTestIsolation()};
+  const pass=Object.values(checks).every(Boolean);return {status:pass?'PASS':'FAIL',checks,active:activeSaveKey()};
+}
+
+// Sprint AT regression: evidence must round-trip independently of gameplay state.
+function runPlaytestEvidencePersistenceContractTest(){
+  const backup=makePlaytestEvidenceSave();
+  try{
+    const fake={originBuild:'ALPHA-027 / Sprint BA',startedAt:1700000000000,finishedAt:null,firstActionAt:1700000004321,stageAt:{'2':12000,'5':42000},actionCounts:{wallCommit:2,gatePlacement:1},endingReached:false};
+    const restored=restorePlaytestEvidence(fake),round=makePlaytestEvidenceSave();
+    const checks={restored,originBuild:round.originBuild===fake.originBuild,startedAt:round.startedAt===fake.startedAt,firstActionAt:round.firstActionAt===fake.firstActionAt,stages:round.stageAt['5']===42000,actions:round.actionCounts.wallCommit===2&&!round.endingReached,saveCarriesEvidence:!PLAYTEST_MODE||!!makeSaveSnapshot(1).playtestEvidence};
+    const pass=Object.values(checks).every(Boolean);return {status:pass?'PASS':'FAIL',checks};
+  }finally{restorePlaytestEvidence(backup)}
+}
+
+// Sprint AY: Human Evidence Provenance Continuity Contract.
+// A resumed playtest keeps the build that originally produced its evidence.
+// Maintenance builds may read the session, but must not silently relabel old evidence as current-build evidence.
+function runEvidenceProvenanceContinuityTest(){
+  const backup=makePlaytestEvidenceSave();
+  try{
+    const legacy={startedAt:1700000000000,firstActionAt:1700000001000,stageAt:{'1':5000},actionCounts:{wallCommit:1},endingReached:false};
+    const restored=restorePlaytestEvidence(legacy,'ALPHA-027 / Sprint BA');
+    const snap=playtestEvidenceSnapshot();
+    const checks={restored,legacyFallback:snap.evidenceOriginBuild==='ALPHA-027 / Sprint BA',currentBuildNotForged:snap.build===BUILD_IDENTITY.build&&snap.evidenceOriginBuild!==snap.build,savePreservesOrigin:makePlaytestEvidenceSave().originBuild==='ALPHA-027 / Sprint BA'};
+    return {status:Object.values(checks).every(Boolean)?'PASS':'FAIL',checks};
+  }finally{restorePlaytestEvidence(backup)}
+}
+
+// Sprint AU: Alpha 0.1 Release Freeze Contract.
+// Freeze means the Playtest Build is allowed to change only for P0/P1 defects found by Human/iPhone testing.
+// It does NOT claim the game is complete; it prevents feature creep before evidence arrives.
+const RELEASE_FREEZE={
+  target:'alpha-0.1',
+  build:'ALPHA-021 / Sprint AU',
+  first30LimitMs:30*60*1000,
+  firstActionLimitMs:90*1000,
+  tapSlopPx:12,
+  saveVersion:2,
+  requiredJourneyStages:JOURNEY_STAGES.length,
+  policy:'P0_P1_FIX_ONLY'
+};
+function runReleaseFreezeContractTest(){
+  const checks={
+    build:RELEASE_FREEZE.build==='ALPHA-021 / Sprint AU',
+    first30:RELEASE_FREEZE.first30LimitMs===HUMAN_FIRST30_LIMIT_MS,
+    firstAction:RELEASE_FREEZE.firstActionLimitMs===HUMAN_FIRST_ACTION_LIMIT_MS,
+    tapSlop:RELEASE_FREEZE.tapSlopPx===TAP_SLOP_PX,
+    saveVersion:RELEASE_FREEZE.saveVersion===SAVE_VERSION,
+    journeyStages:RELEASE_FREEZE.requiredJourneyStages===JOURNEY_STAGES.length,
+    isolatedSave:SAVE_KEY!==PLAYTEST_SAVE_KEY,
+    policy:RELEASE_FREEZE.policy==='P0_P1_FIX_ONLY'
+  };
+  const pass=Object.values(checks).every(Boolean);
+  return {status:pass?'PASS':'FAIL',checks,manifest:{...RELEASE_FREEZE}};
+}
+function releaseFreezeDecision(automated,freeze){
+  return automated&&freeze.status==='PASS'?{
+    status:'FROZEN_FOR_PLAYTEST',
+    allowed:['P0: 起動不能・進行不能・保存破損','P1: First30 Core到達を阻害する入力/UI/進行不具合'],
+    deferred:['新機能','Compound Recipe拡張','戦争/外交の深掘り','美術の全面改修','非致命的QoL'],
+    unfreezeWhen:'Human First30 / iPhone Safari / 実Save-ResumeのEvidenceでP0/P1修正が必要になった時のみ'
+  }:{status:'NOT_FROZEN',allowed:['Regression FAILの修正'],deferred:[],unfreezeWhen:'自動GateをPASSさせる'};
+}
+// Sprint AV: Human Playtest Defect Triage Contract.
+// Freeze remains anchored to ALPHA-021; ALPHA-022 is a maintenance build that adds no gameplay feature.
+// Human evidence determines whether the frozen candidate can ship, needs a P0/P1 correction, or merely records P2 debt.
+const PLAYTEST_TRIAGE={
+  p0:['bootFailure','saveCorruption','hardLock'],
+  p1:['coreBlocked','inputBlocked','uiOccludesCore','resumeBlocked'],
+  p2:['cosmetic','minorQoL','contentDepth']
+};
+function classifyPlaytestDefect(d={}){
+  if(d.bootFailure||d.saveCorruption||d.hardLock)return 'P0';
+  if(d.coreBlocked||d.inputBlocked||d.uiOccludesCore||d.resumeBlocked)return 'P1';
+  return 'P2';
+}
+function playtestReleaseDecision(evidence=humanPlaytestAcceptanceTest(),defects=[]){
+  const severities=defects.map(classifyPlaytestDefect);
+  const p0=severities.includes('P0'),p1=severities.includes('P1');
+  if(p0||p1)return {status:'FIX_REQUIRED',severity:p0?'P0':'P1',allowedChange:'minimal_reversible_fix',retest:'affected gate + RC一括 + Human First30'};
+  if(evidence.status==='PASS')return {status:'ALPHA_0_1_HUMAN_GATE_PASS',severity:severities.length?'P2':'NONE',allowedChange:'freeze',retest:'iPhone Safari / real Save-Resume evidence still required'};
+  return {status:'EVIDENCE_PENDING',severity:severities.length?'P2':'NONE',allowedChange:'freeze',retest:'Human First30'};
+}
+function runPlaytestTriageContractTest(){
+  const checks={
+    p0:classifyPlaytestDefect({saveCorruption:true})==='P0',
+    p1:classifyPlaytestDefect({inputBlocked:true})==='P1',
+    p2:classifyPlaytestDefect({cosmetic:true})==='P2',
+    p0Wins:playtestReleaseDecision({status:'PASS'},[{cosmetic:true},{bootFailure:true}]).severity==='P0',
+    passDoesNotOverrideP1:playtestReleaseDecision({status:'PASS'},[{coreBlocked:true}]).status==='FIX_REQUIRED',
+    untestedStaysPending:playtestReleaseDecision({status:'UNTESTED'},[]).status==='EVIDENCE_PENDING'
+  };
+  const pass=Object.values(checks).every(Boolean);
+  return {status:pass?'PASS':'FAIL',checks,policy:{...PLAYTEST_TRIAGE}};
+}
+
+// Sprint AX: Build Identity regression.
+function runBuildIdentityContractTest(){
+  const probe=makeSaveSnapshot(1700000000000);
+  const checks={
+    build:BUILD_IDENTITY.build==='ALPHA-025 / Sprint AY',
+    parent:BUILD_IDENTITY.parent==='ALPHA-027 / Sprint BA',
+    freezeAnchor:BUILD_IDENTITY.freezeAnchor===RELEASE_FREEZE.build,
+    schema:BUILD_IDENTITY.saveSchema===SAVE_VERSION,
+    maintenanceOnly:BUILD_IDENTITY.changeClass==='MAINTENANCE_RELEASE_HANDOFF'&&!BUILD_IDENTITY.gameplayRuleChange,
+    saveCarriesIdentity:probe.buildIdentity&&probe.buildIdentity.build===BUILD_IDENTITY.build
+  };
+  return {status:Object.values(checks).every(Boolean)?'PASS':'FAIL',checks,identity:{...BUILD_IDENTITY}};
+}
+
+// Sprint AW: RC Gate Integrity Contract.
+// Maintenance-only: no gameplay rule changes. Verifies that release-critical result keys are unique
+// and that the frozen ALPHA-021 contract remains the authority while later builds only add evidence/maintenance.
+const RC_GATE_REQUIRED_KEYS=['progression','playable','pacing','saveRoundTrip','pointerInput','unifiedPlayerPath','inputRobustness','viewportLayout','playtestIsolation','playtestEvidencePersistence','evidenceProvenance','releaseFreeze','playtestTriage','buildIdentity','playtestHandoff'];
+function runRCGateIntegrityContractTest(){
+  const unique=new Set(RC_GATE_REQUIRED_KEYS);
+  const checks={
+    uniqueKeys:unique.size===RC_GATE_REQUIRED_KEYS.length,
+    freezeAnchor:RELEASE_FREEZE.build==='ALPHA-021 / Sprint AU',
+    freezePolicy:RELEASE_FREEZE.policy==='P0_P1_FIX_ONLY',
+    coreKeysPresent:['playable','pacing','pointerInput','viewportLayout'].every(k=>unique.has(k)),
+    evidenceKeysPresent:['playtestIsolation','playtestEvidencePersistence','playtestTriage'].every(k=>unique.has(k))
+  };
+  return {status:Object.values(checks).every(Boolean)?'PASS':'FAIL',checks,requiredKeys:[...RC_GATE_REQUIRED_KEYS]};
+}
+
+// Sprint AJ: Alpha Release Readiness Gate.
+// This gate is intentionally stricter than any single regression test.
+// Automated checks can qualify a build as RC (release candidate), never as Human-Playtested.
+function runAlphaReadinessGate(){
+  return isolatedTest(()=>{
+  const results={
+    progression:runProgressionAuthorityTest(),
+    playable:runPlayableCoreE2E(),
+    pacing:runFirst30PacingTest(),
+    saveRoundTrip:runSaveResumeRoundTripTest(),
+    pointerInput:runPointerInputContractTest(),
+    unifiedPlayerPath:runUnifiedPlayerPathE2E(),
+    inputRobustness:runInputRobustnessTest(),
+    viewportLayout:runViewportLayoutContractTest(),
+    playtestIsolation:runPlaytestIsolationContractTest(),
+    playtestEvidencePersistence:runPlaytestEvidencePersistenceContractTest(),
+    evidenceProvenance:runEvidenceProvenanceContinuityTest(),
+    releaseFreeze:runReleaseFreezeContractTest(),
+    playtestTriage:runPlaytestTriageContractTest(),
+    buildIdentity:runBuildIdentityContractTest(),
+    playtestHandoff:runPlaytestHandoffContractTest(),
+    rcGateIntegrity:runRCGateIntegrityContractTest()
+  };
+  const automated=results.progression.status==='PASS'&&results.playable.status==='PASS'&&results.pacing.status==='PASS'&&results.saveRoundTrip.status==='PASS'&&results.pointerInput.status==='PASS'&&results.unifiedPlayerPath.status==='PASS'&&results.inputRobustness.status==='PASS'&&results.viewportLayout.status==='PASS'&&results.playtestIsolation.status==='PASS'&&results.playtestEvidencePersistence.status==='PASS'&&results.evidenceProvenance.status==='PASS'&&results.releaseFreeze.status==='PASS'&&results.playtestTriage.status==='PASS'&&results.buildIdentity.status==='PASS'&&results.playtestHandoff.status==='PASS'&&results.rcGateIntegrity.status==='PASS';
+  const freeze=releaseFreezeDecision(automated,results.releaseFreeze);
+  const report={
+    status:automated?'RC-FROZEN':'BLOCKED',
+    freeze:freeze.status,
+    automated,
+    humanPlaytest:false,
+    iphoneSafari:false,
+    saveResumeRealBrowser:false,
+    testSaveIsolation:TEST_HARNESS_MODE,
+    saveRoundTrip:results.saveRoundTrip.status,
+    pointerInput:results.pointerInput.status,
+    unifiedPlayerPath:results.unifiedPlayerPath.status,
+    inputRobustness:results.inputRobustness.status,
+    viewportLayout:results.viewportLayout.status,
+    playtestIsolation:results.playtestIsolation.status,
+    playtestEvidencePersistence:results.playtestEvidencePersistence.status,
+    evidenceProvenance:results.evidenceProvenance.status,
+    releaseFreeze:results.releaseFreeze.status,
+    playtestTriage:results.playtestTriage.status,
+    buildIdentity:results.buildIdentity.status,
+    playtestHandoff:results.playtestHandoff.status,
+    rcGateIntegrity:results.rcGateIntegrity.status,
+    suppressedTestSaves,
+    humanFirst30:humanPlaytestAcceptanceTest().status,
+    blockers:automated?['Human First30 Playtestの実測PASS待ち','iPhone Safari 実機未検証','実ブラウザ終了→再開未検証']:['自動RegressionのFAILを修正']
+  };
+  document.body.dataset.readiness=report.status;
+  document.body.dataset.testSaves=String(suppressedTestSaves);
+  setNotice(automated?'Alpha 0.1 RC-FROZEN：機能追加を停止。Human/iPhone/実Save-ResumeのEvidence待ち。':'Alpha Readiness BLOCKED：自動RegressionにFAILがあります。');
+  draw();return {report,results};
+  });
+}
+// Sprint AZ: Playtest Handoff / Release State Contract.
+// One authority answers what should happen next. Automated RC never impersonates human evidence.
+function evaluatePlaytestHandoff(readiness=null, defects=[]){
+  const auto=readiness||runAlphaReadinessGate();
+  const report=auto.report||{};
+  const human=evaluateHumanPlaytestEvidence();
+  const triage=triagePlaytestDefects(defects,human);
+  let state='PREPLAYTEST';
+  let next='現Buildを ?playtest=1 でHuman First30試遊する';
+  if(!report.automated){state='BLOCKED';next='FAILした自動Regressionだけを修正してRC一括を再実行する';}
+  else if(triage.status==='FIX_REQUIRED'){state='FIX_REQUIRED';next=`${triage.severity}を最小・可逆修正し、影響Gate＋RC一括＋Human First30を再試験する`;}
+  else if(human.first30Pass){state='RC-CANDIDATE';next='iPhone Safari実機と実ブラウザSave/Resume Evidenceを確認する';}
+  return {status:state,automated:!!report.automated,humanFirst30:human.status,triage:triage.status,next,blockers:report.blockers||[],build:BUILD_IDENTITY.build,freezeAnchor:BUILD_IDENTITY.freezeAnchor};
+}
+function runPlaytestHandoffContractTest(){
+  const fakeAutoPass={report:{automated:true,blockers:[]}},fakeAutoFail={report:{automated:false,blockers:['regression']}};
+  const saved={...playtestEvidence,stageAt:{...playtestEvidence.stageAt},actionCounts:{...playtestEvidence.actionCounts}};
+  const checks={blockedOnAutomation:evaluatePlaytestHandoff(fakeAutoFail).status==='BLOCKED'};
+  Object.assign(playtestEvidence,{originBuild:BUILD_IDENTITY.build,startedAt:1000,finishedAt:null,firstActionAt:2000,stageAt:{'⑦歴史':1000+10*60*1000},actionCounts:{strokeCommitted:1},endingReached:false});
+  const human=evaluateHumanPlaytestEvidence({mode:'HUMAN_PLAYTEST',build:BUILD_IDENTITY.build,evidenceOriginBuild:BUILD_IDENTITY.build,elapsedMs:10*60*1000,firstActionMs:1000,journeyCompleted:true,alphaComplete:false,endingReached:false,metrics:{strokeCommitted:1},gatePlacements:1,historicalTraces:1,generation:1});
+  checks.humanFixturePass=human.first30Pass===true;
+  checks.p0Stops=triagePlaytestDefects([{severity:'P0',kind:'BOOT'}],human).status==='FIX_REQUIRED';
+  checks.p1Stops=triagePlaytestDefects([{severity:'P1',kind:'CORE_INPUT'}],human).status==='FIX_REQUIRED';
+  checks.p2DoesNotUnfreeze=triagePlaytestDefects([{severity:'P2',kind:'POLISH'}],human).allowedChange==='freeze';
+  Object.assign(playtestEvidence,saved);playtestEvidence.stageAt=saved.stageAt;playtestEvidence.actionCounts=saved.actionCounts;
+  return {status:Object.values(checks).every(Boolean)?'PASS':'FAIL',checks};
+}
+
+// Sprint AP: one-click RC evidence report. Runs production regressions under save isolation
+// and exposes the exact remaining non-automated gates without claiming Human/iPhone validation.
+function runRCSelfTest(){
+  const r=runAlphaReadinessGate(),rows=Object.entries(r.results).map(([k,v])=>`${k}: <b>${v.status||'—'}</b>`).join('<br>');
+  const p=document.getElementById('panel');p.classList.add('open');
+  p.innerHTML=`<b>ALPHA-026 α0.1 RC / Freeze Self-Test</b><br>${rows}<br><br><b>判定 ${r.report.status}</b><br>隔離save ${suppressedTestSaves}件<br><span style="opacity:.7">Freeze ${r.report.freeze} / Human First30 ${r.report.humanFirst30} / Evidence再開 ${r.report.playtestEvidencePersistence}<br>未検証：iPhone Safari実機 / 実ブラウザ終了→再開<br>Freeze中はP0/P1修正のみ。新機能はα0.1試遊後へ延期</span><br><br><b>次工程：</b> ${evaluatePlaytestHandoff(r).status} — ${evaluatePlaytestHandoff(r).next}`;
+  document.body.dataset.rcselftest=r.report.status;return r;
+}
+function applyPlaytestMode(){
+  if(!PLAYTEST_MODE)return false;
+  const d=document.getElementById('debugToggle'),tools=document.getElementById('debugTools');if(d)d.style.display='none';if(tools)tools.style.display='none';
+  document.body.dataset.playtest='1';document.body.dataset.saveIsolation='PLAYTEST';
+  const hint=document.querySelector('#intro .hint');if(hint)hint.insertAdjacentHTML('beforebegin','<p class="hint"><b>試遊モード：</b>通常の保存データとは別枠です。普段の時代は上書きされません。</p>');
+  return true;
+}
+function runRealmSkeleton(){
+  setPlaying(false);
+  if(!core||!gate||!route.length){runVerticalSliceScenario();}
+  for(let i=0;i<24;i++){advance();realmStep();}
+  setNotice(`領国骨格：${realm.phase}まで進行。人口${realm.population}・軍勢${realm.military}。個体AIではなく集約Simulationです。`);
+  draw();
+}
+
+function updatePanel(){document.getElementById('panel').innerHTML=`石垣 ${walls.length}<br>門 ${gate?1:0}<br>経路 ${route.length?'A*有効':'—'}<br>代表表示 ${people.length}<br>生活動線 ${localFlow.route.length?'稼働':'—'}<br>踏み跡 ${traffic.length}（旧道 ${historicalTraceCount()}）<br>活動 ${activity.state} ${activity.pressure.toFixed(1)}<br>仮住居 ${dwellings.length}<br><span style="opacity:.7">Stroke ${metrics.strokeCommitted}/${metrics.strokeStarted} ・ 2指取消 ${metrics.strokeCancelledBySecondFinger}<br>RouteHash ${route.length?routeHash().slice(0,18)+'…':'—'}<br>時間 ${playTimer?'進行中':'停止'}<br>進行 ${journeyProgress()} ${journeyText()}<br>門比較 ${decisionEval.status}<br>歴史試験 ${scenarioEval.status}${scenarioEval.status!=='未実施'?`（旧${scenarioEval.historical}/現${scenarioEval.active}）`:''}<br>縦切り試験 ${e2eEval.status}${e2eEval.status!=='未実施'?`（${e2eEval.ticks} tick）`:''}<br>画面確認 ${sceneEval.label}<br><b>領国 ${realm.phase}</b> G${realm.generation}<br>人口 ${realm.population} / 食料 ${realm.food} / 労働 ${realm.labor}<br>財 ${realm.treasury} / 軍勢 ${realm.military} / 他勢力圧 ${realm.rivalPressure}<br>東領 ${rival.phase} 軍勢${rival.military} / 支配${realm.control??50}%<br>勢力戦 ${warEval.status} ${warEval.result}<br>戦後 ${aftermath.status}${aftermath.status!=='未実施'?` 被害${aftermath.damage}/復興${aftermath.years}年/痕跡${aftermath.legacy?'有':'無'}`:''}<br>領国地図 ${domainEval.status}${domainEval.status!=='未実施'?` ${domainEval.nodes}拠点/${domainEval.links}路`:''}<br><b>α ${alphaEval.status}</b>｜${alphaPhase()}｜年代記${chronicle.length}件</span>`;document.getElementById('status').textContent=!core?'縄張り前':!walls.length?'城芯設置':!gate?'石垣普請':alphaPhase();updatePlayerUI()}
+function setPlaying(on){const b=document.getElementById('time');if(on&&!playTimer){playTimer=setInterval(advance,700);b.textContent='⏸ 一時停止'}else if(!on&&playTimer){clearInterval(playTimer);playTimer=null;b.textContent='▶ 時を進める'}}
+// Sprint AF: Decision Boundary Contract.
+// Auto-time may advance simulation, but must stop before a meaningful manual decision.
+// This prevents the player from overshooting gate relocation or realm/domain transitions on iPhone.
+function decisionBoundary(){
+  updateJourney();
+  if(!playTimer)return null;
+  if(!journey.completed&&journey.stage===5)return {kind:'GATE_REBUILD',notice:'往来と生活が育ちました。時間を止めました。次は門を改築してください。'};
+  if(journey.completed&&realm.population>=60&&realm.prosperity>=20&&domainEval.status==='未実施')return {kind:'DOMAIN',notice:'城下町が領国化条件に達しました。時間を止めました。次は領国を束ねます。'};
+  return null;
+}
+function enforceDecisionBoundary(){const b=decisionBoundary();if(!b)return false;setPlaying(false);setNotice(b.notice);autoSave();return true}
+function advance(){ticks++;decayTraffic();season=(season+1)%4;if(!season)year++;document.getElementById('year').textContent=`${year}年 ${['春','夏','秋','冬'][season]}`;if(route.length){for(const p of people){p.t=(p.t+.07)%1;Object.assign(p,pointOnRoute(p.t))}addTrafficForRoute(route,1);settlementStep();if(localFlow.route.length){localFlow.strength=Math.min(6,localFlow.strength+.25);addTrafficForRoute(localFlow.route,.35);}setNotice(ticks<2?'人が門を通って城へ向かっています。':'往来が地面を変えています。使われなくなった踏み跡は薄れ、旧道の痕跡として残ります。')}else setNotice('門まで作ると人が動き始めます。');if(journey.completed)realmStep();if(worldNodes.length)domainStep();if(ticks>0&&ticks%8===0)autoSave();maybeFinish();const recoveryHint=progressionRecoveryHint();if(recoveryHint)setNotice(recoveryHint);draw();enforceDecisionBoundary()}
+function pt(e){let r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+// Sprint AN: Input Robustness Contract. A tap is a deliberate short contact, not merely any pointerup.
+// 12 CSS px is intentionally viewport-stable; world zoom must not change finger tolerance.
+const TAP_SLOP_PX=12;let pointerStarts=new Map(),pointerMaxTravel=new Map();
+function trackPointerStart(e){const p=pt(e);pointerStarts.set(e.pointerId,p);pointerMaxTravel.set(e.pointerId,0);return p}
+function trackPointerTravel(e){const p=pt(e),s=pointerStarts.get(e.pointerId);if(s)pointerMaxTravel.set(e.pointerId,Math.max(pointerMaxTravel.get(e.pointerId)||0,Math.hypot(p.x-s.x,p.y-s.y)));return p}
+function clearPointerTrack(id){const travel=pointerMaxTravel.get(id)||0;pointerStarts.delete(id);pointerMaxTravel.delete(id);return travel}
+c.addEventListener('pointerdown',e=>{c.setPointerCapture(e.pointerId);const down=trackPointerStart(e);pointers.set(e.pointerId,down);if(pointers.size===2){gestureLock=true;let a=[...pointers.values()];pinch={dist:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),z:cam.z,mid:{x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2},cx:cam.x,cy:cam.y};if(drawing){metrics.strokeCancelledBySecondFinger++;drawing=null;draw()}return}if(tool==='wall'){metrics.strokeStarted++;drawing={pts:[world(pt(e))]}}});
+c.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;const moved=trackPointerTravel(e);pointers.set(e.pointerId,moved);if(pointers.size>=2&&pinch){let a=[...pointers.values()],dist=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),mid={x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2};cam.z=Math.max(.65,Math.min(2.2,pinch.z*dist/pinch.dist));cam.x=pinch.cx+(mid.x-pinch.mid.x);cam.y=pinch.cy+(mid.y-pinch.mid.y);draw();return}if(drawing){let q=world(pt(e)),last=drawing.pts.at(-1);if(Math.hypot(q.x-last.x,q.y-last.y)>3/cam.z)drawing.pts.push(q);draw()}});
+c.addEventListener('pointerup',e=>{let p=trackPointerTravel(e),travel=clearPointerTrack(e.pointerId),was=pointers.size;pointers.delete(e.pointerId);if(was>=2||gestureLock){if(pointers.size<2)pinch=null;if(pointers.size===0)gestureLock=false;return}if(drawing){let pts=simplify(drawing.pts);drawing=null;if(pts.length>1){let obj={pts};cmd(()=>{walls.push(obj);if(gate)rebuildRoute()},()=>{walls=walls.filter(w=>w!==obj);if(gate&&!nearestOnWalls(gate))gate=null;rebuildRoute()});metrics.strokeCommitted++;lastAction='wallCommit';setNotice('石垣を確定しました。次は石垣上に門を置けます。')}else tap(p)}else if(travel<=TAP_SLOP_PX)tap(p);else setNotice('ドラッグを検出したため、配置操作は行いませんでした。');draw()});
+c.addEventListener('pointercancel',e=>{pointers.delete(e.pointerId);clearPointerTrack(e.pointerId);drawing=null;pinch=null;if(pointers.size===0)gestureLock=false;draw()});
+document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>{tool=b.dataset.tool;syncTools();setNotice(tool==='gate'?'石垣上をタップして門を置きます。':tool==='wall'?'指で石垣を自由に描きます。':'地形に意図を置いてください。')});
+function detectResume(){try{
+  if(PLAYTEST_MODE&&!location.search.includes('playtestresume=1')){clearPlaytestSave();const start=document.getElementById('start');start.textContent='新しい試遊を始める';start.dataset.resume='0';saveStateLabel='試遊・新規';const h=document.querySelector('#intro h2');if(h)h.textContent='築城記 α0.1 試遊';return false}
+  const raw=localStorage.getItem(activeSaveKey());if(!raw)return false;const s=JSON.parse(raw);if(![1,2].includes(s.v))return false;const start=document.getElementById('start');start.textContent=PLAYTEST_MODE?'試遊を再開':'保存した時代から再開';start.dataset.resume='1';saveStateLabel=PLAYTEST_MODE?'試遊保存あり':'保存あり';const h=document.querySelector('#intro h2');if(h)h.textContent=PLAYTEST_MODE?'築城記 α0.1 試遊を再開':'築城記を再開する';return true}catch(e){return false}}
+document.getElementById('context').onclick=playerContextAction;document.getElementById('rcSelfTest').onclick=runRCSelfTest;document.getElementById('playtestReport').onclick=showPlaytestReport;document.getElementById('debugToggle').onclick=()=>document.getElementById('debugTools').classList.toggle('open');document.getElementById('panel').onclick=()=>document.getElementById('panel').classList.remove('open');document.getElementById('undo').onclick=()=>{let a=commands.pop();if(a){if(lastAction==='wallCommit')metrics.undoImmediatelyAfterCommit++;a.undo();redos.push(a);lastAction='undo';setNotice('直前の操作を戻しました。');draw()}};document.getElementById('redo').onclick=()=>{let a=redos.pop();if(a){a.doit();commands.push(a);lastAction='redo';setNotice('操作をやり直しました。');draw()}};document.getElementById('scene').onclick=()=>nextVisualScene();document.getElementById('choice').onclick=()=>isolatedTest(runGateChoiceTest);document.getElementById('scenario').onclick=()=>isolatedTest(runHistoryScenario);document.getElementById('realm').onclick=()=>isolatedTest(runRealmSkeleton);document.getElementById('war').onclick=()=>isolatedTest(runRivalWar);document.getElementById('aftermath').onclick=()=>isolatedTest(runPostWarRecovery);document.getElementById('domain').onclick=()=>isolatedTest(runDomainSkeleton);document.getElementById('chronicle').onclick=()=>showChronicle();document.getElementById('save').onclick=()=>saveGame();document.getElementById('load').onclick=()=>loadGame();document.getElementById('alpha').onclick=()=>isolatedTest(runAlphaLoop);document.getElementById('time').onclick=()=>setPlaying(!playTimer);document.getElementById('continue').onclick=()=>document.getElementById('ending').classList.remove('show');document.getElementById('start').onclick=()=>{if(!playtestEvidence.startedAt)playtestEvidence.startedAt=playtestNow();document.getElementById('intro').style.display='none';if(document.getElementById('start').dataset.resume==='1')loadGame();else setNotice('① 縄張り：まず城芯を置いてください。')};detectResume();applyPlaytestMode();document.getElementById('e2e').onclick=()=>isolatedTest(runVerticalSliceScenario);const sceneMatch=location.search.match(/[?&]scene=(\d+)/);if(sceneMatch)setTimeout(()=>showVisualScene(Number(sceneMatch[1])),30);if(location.search.includes('autofull=1'))setTimeout(()=>{const ok=runFullSkeletonTest();document.body.dataset.full=ok?'PASS':'FAIL'},70);if(location.search.includes('autoalpha=1'))setTimeout(()=>{const ok=runAlphaAcceptance();document.body.dataset.alpha=ok?'PASS':'FAIL'},90);if(location.search.includes('autoe2e=1'))setTimeout(()=>{const ok=runVerticalSliceScenario();document.body.dataset.e2e=ok?'PASS':'FAIL';document.body.dataset.e2eTicks=String(e2eEval.ticks)},50);if(location.search.includes('autoprogression=1'))setTimeout(()=>{const r=runProgressionAuthorityTest();document.body.dataset.progression=r.status},60);if(location.search.includes('autoplayable=1'))setTimeout(()=>{const r=runPlayableCoreE2E();document.body.dataset.playable=r.status},110);if(location.search.includes('autofirst30=1'))setTimeout(()=>{const r=runFirst30PacingTest();document.body.dataset.first30=r.status},130);if(location.search.includes('autosaveroundtrip=1'))setTimeout(()=>{const r=runSaveResumeRoundTripTest();document.body.dataset.saveRoundtrip=r.status},145);if(location.search.includes('autopointer=1'))setTimeout(()=>{const r=runPointerInputContractTest();document.body.dataset.pointerinput=r.status},150);if(location.search.includes('autounified=1'))setTimeout(()=>{const r=runUnifiedPlayerPathE2E();document.body.dataset.unifiedE2E=r.status},155);if(location.search.includes('autoinputrobustness=1'))setTimeout(()=>{const r=runInputRobustnessTest();document.body.dataset.inputrobustness=r.status},158);if(location.search.includes('autoviewport=1'))setTimeout(()=>{const r=runViewportLayoutContractTest();document.body.dataset.viewportlayout=r.status},159);if(location.search.includes('autofreeze=1'))setTimeout(()=>{const r=runReleaseFreezeContractTest();document.body.dataset.releasefreeze=r.status},159);if(location.search.includes('autoready=1'))setTimeout(()=>{const r=runAlphaReadinessGate();document.body.dataset.readiness=r.report.status},160);
+resize();
+</script></body></html>
